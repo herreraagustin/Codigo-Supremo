@@ -1,12 +1,18 @@
+
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Navbar from "./Components/Navbar";
+import Navbar from "./components/Navbar";
+import { DetallePeli } from "./pages/DetallePeli";
+import { Register } from "./pages/Register";
+import { Footer } from "./components/Footer";
 
-function Home({ searchTerm }: { searchTerm: string}) {
+function Home({ searchTerm }: { searchTerm: string }) {
   return (
     <main className="p-6 text-white">
       <h1 className="text-2xl font-bold">Home</h1>
-      <p className="text-slate-400">Buscando: {searchTerm || "(nada)"}</p>
+      <p className="text-slate-400">
+        Buscando: {searchTerm || "(nada)"}
+      </p>
     </main>
   );
 }
@@ -14,16 +20,21 @@ function Home({ searchTerm }: { searchTerm: string}) {
 function Admin() {
   return (
     <main className="p-6 text-white">
-      <h1 className="text-2xl font-bold">Panel de Admnistracion</h1>
+      <h1 className="text-2xl font-bold">
+        Panel de Administración
+      </h1>
     </main>
   );
 }
 
-function Login ({onLogin}: {onLogin: () => void}) {
+function Login({ onLogin }: { onLogin: () => void }) {
   return (
     <main className="p-6 text-white">
       <h1 className="text-2xl font-bold">Login</h1>
-      <button onClick={onLogin} className="mt-4 rounded bg-blue-500 px-4 py-2 font-semibold">
+      <button
+        onClick={onLogin}
+        className="mt-4 rounded bg-blue-500 px-4 py-2 font-semibold"
+      >
         Entrar (simulado)
       </button>
     </main>
@@ -31,7 +42,7 @@ function Login ({onLogin}: {onLogin: () => void}) {
 }
 
 export default function App() {
-  const [ searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [isLogged, setIsLogged] = useState(
     localStorage.getItem("isLogged") === "true"
   );
@@ -48,48 +59,40 @@ export default function App() {
 
   return (
     <BrowserRouter>
-    <div className="min-h-screen bg-[#070b14]">
-      <Navbar
+      <div className="flex min-h-screen flex-col bg-[#070b14]">
+        <Navbar
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           isLogged={isLogged}
           onLogout={handleLogout}
         />
-       <Routes>
-          <Route path="/" element={<Home searchTerm={searchTerm} />} />
-          <Route path="/login" element={<Login onLogin={handleLogin} />} />
-          <Route
-            path="/admin"
-            element={isLogged ? <Admin /> : <Navigate to="/login" replace />}
-          />
-        </Routes>
-    </div>
-    </BrowserRouter>
-  )
-}
 
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+        <div className="flex-1">
+          <Routes>
+            <Route
+              path="/"
+              element={<Home searchTerm={searchTerm} />}
+            />
+            <Route
+              path="/login"
+              element={<Login onLogin={handleLogin} />}
+            />
+            <Route
+              path="/admin"
+              element={
+                isLogged ? <Admin /> : <Navigate to="/login" replace />
+              }
+            />
+            <Route
+              path="/pelicula/:id"
+              element={<DetallePeli />}
+            />
+            <Route path="/register" element={<Register />} />
+          </Routes>
+        </div>
 
-import { Home } from "./pages/Home";
-import { DetallePeli } from "./pages/DetallePeli";
-import { Login } from "./pages/Login";
-import { Register } from "./pages/Register";
-import { Footer } from "./components/Footer";
-
-function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/pelicula/:id" element={<DetallePeli />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-      </Routes>
-
-      <Footer />
+        <Footer />
+      </div>
     </BrowserRouter>
   );
 }
-
-export default App;
-
