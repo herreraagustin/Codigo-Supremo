@@ -1,21 +1,10 @@
-
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
+import { Home } from "./pages/Home";
 import { DetallePeli } from "./pages/DetallePeli";
 import { Register } from "./pages/Register";
 import { Footer } from "./components/Footer";
-
-function Home({ searchTerm }: { searchTerm: string }) {
-  return (
-    <main className="p-6 text-white">
-      <h1 className="text-2xl font-bold">Home</h1>
-      <p className="text-slate-400">
-        Buscando: {searchTerm || "(nada)"}
-      </p>
-    </main>
-  );
-}
 
 function Admin() {
   return (
@@ -69,24 +58,25 @@ export default function App() {
 
         <div className="flex-1">
           <Routes>
-            <Route
-              path="/"
-              element={<Home searchTerm={searchTerm} />}
-            />
+            <Route path="/" element={<Home />} />
+
             <Route
               path="/login"
               element={<Login onLogin={handleLogin} />}
             />
+
             <Route
               path="/admin"
               element={
                 isLogged ? <Admin /> : <Navigate to="/login" replace />
               }
             />
+
             <Route
               path="/pelicula/:id"
               element={<DetallePeli />}
             />
+
             <Route path="/register" element={<Register />} />
           </Routes>
         </div>
