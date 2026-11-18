@@ -1,41 +1,10 @@
 
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { obtenerCatalogo } from "../services/peliculas";
-import type { Contenido } from "../services/peliculas";
 
 export const Admin = () => {
-  const [peliculas, setPeliculas] = useState<Contenido[]>([]);
-  const [busqueda, setBusqueda] = useState("");
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    async function cargarPeliculas() {
-      try {
-        setError("");
-        const datos = await obtenerCatalogo("movie");
-        setPeliculas(datos);
-      } catch (error) {
-        console.error("Error al cargar las películas:", error);
-        setError("No se pudieron cargar las películas.");
-      } finally {
-        setCargando(false);
-      }
-    }
-
-    cargarPeliculas();
-  }, []);
-
-  const peliculasFiltradas = peliculas.filter((pelicula) => {
-    const titulo = pelicula.name || pelicula.title || "";
-
-    return titulo.toLowerCase().includes(busqueda.toLowerCase());
-  });
-
   return (
     <main className="min-h-screen bg-[#070b14] p-6 text-white md:p-10">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-6xl">
         <Link
           to="/"
           className="mb-6 inline-block text-blue-400 hover:text-blue-300"
@@ -43,128 +12,121 @@ export const Admin = () => {
           ← Volver al inicio
         </Link>
 
-        <div className="mb-8">
+        <header className="mb-10">
           <h1 className="text-3xl font-bold md:text-4xl">
             Panel de Administración
           </h1>
 
-          <p className="mt-2 text-slate-400">
-            Consultá y buscá las películas del catálogo.
+          <p className="mt-3 text-slate-400">
+            Seleccioná una sección para administrar CineRolling.
           </p>
-        </div>
+        </header>
 
-        <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="rounded-xl border border-slate-700 bg-slate-900 p-5">
-            <p className="text-sm text-slate-400">
-              Películas cargadas
-            </p>
-            <p className="mt-2 text-3xl font-bold">
-              {cargando ? "..." : peliculas.length}
-            </p>
-          </div>
+        <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Link
+            to="/admin/peliculas"
+            className="group rounded-xl border border-slate-700 bg-slate-900 p-6 transition hover:-translate-y-1 hover:border-blue-500 hover:bg-slate-800"
+          >
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-500/15 text-blue-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M7 3v18M17 3v18M3 7h4M3 12h4M3 17h4M17 7h4M17 12h4M17 17h4" />
+              </svg>
+            </div>
 
-          <div className="rounded-xl border border-slate-700 bg-slate-900 p-5">
-            <p className="text-sm text-slate-400">
-              Resultados de búsqueda
-            </p>
-            <p className="mt-2 text-3xl font-bold">
-              {cargando ? "..." : peliculasFiltradas.length}
-            </p>
-          </div>
-        </section>
-
-        <section className="rounded-xl border border-slate-700 bg-slate-900 p-5 md:p-6">
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-xl font-bold">
-              Listado de películas
+            <h2 className="text-xl font-bold group-hover:text-blue-400">
+              Películas
             </h2>
 
-            <input
-              type="text"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar película..."
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none placeholder:text-slate-400 focus:border-blue-500 sm:max-w-xs"
-            />
-          </div>
-
-          {cargando ? (
-            <p className="py-8 text-center text-slate-400">
-              Cargando películas...
+            <p className="mt-2 text-sm text-slate-400">
+              Consultá y administrá las películas del catálogo.
             </p>
-          ) : error ? (
-            <p className="py-8 text-center text-red-400">
-              {error}
+
+            <p className="mt-5 text-sm font-semibold text-blue-400">
+              Ir a películas →
             </p>
-          ) : peliculasFiltradas.length === 0 ? (
-            <p className="py-8 text-center text-slate-400">
-              No se encontraron películas.
-            </p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[650px] text-left">
-                <thead>
-                  <tr className="border-b border-slate-700 text-sm text-slate-400">
-                    <th className="px-3 py-4">Póster</th>
-                    <th className="px-3 py-4">Título</th>
-                    <th className="px-3 py-4">Año</th>
-                    <th className="px-3 py-4">Calificación</th>
-                    <th className="px-3 py-4">Detalles</th>
-                  </tr>
-                </thead>
+          </Link>
 
-                <tbody>
-                  {peliculasFiltradas.map((pelicula) => (
-                    <tr
-                      key={pelicula.id}
-                      className="border-b border-slate-800 transition hover:bg-slate-800/60"
-                    >
-                      <td className="px-3 py-3">
-                        {pelicula.poster ? (
-                          <img
-                            src={pelicula.poster}
-                            alt={`Póster de ${pelicula.name || pelicula.title || "película"}`}
-                            className="h-20 w-14 rounded object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <span className="text-sm text-slate-500">
-                            Sin póster
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="px-3 py-3 font-medium">
-                        {pelicula.name || pelicula.title || "Sin título"}
-                      </td>
-
-                      <td className="px-3 py-3 text-slate-300">
-                        {pelicula.year || "Desconocido"}
-                      </td>
-
-                      <td className="px-3 py-3 text-slate-300">
-                        {pelicula.imdbRating
-                          ? `⭐ ${pelicula.imdbRating}`
-                          : "Sin calificación"}
-                      </td>
-
-                      <td className="px-3 py-3">
-                        <Link
-                          to={`/pelicula/${pelicula.id}`}
-                          className="text-blue-400 hover:underline"
-                        >
-                          Ver película
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <Link
+            to="/admin/series"
+            className="group rounded-xl border border-slate-700 bg-slate-900 p-6 transition hover:-translate-y-1 hover:border-purple-500 hover:bg-slate-800"
+          >
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-purple-500/15 text-purple-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="4" width="18" height="16" rx="2" />
+                <path d="m10 9 5 3-5 3z" />
+              </svg>
             </div>
-          )}
+
+            <h2 className="text-xl font-bold group-hover:text-purple-400">
+              Series
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-400">
+              Consultá y administrá las series del catálogo.
+            </p>
+
+            <p className="mt-5 text-sm font-semibold text-purple-400">
+              Ir a series →
+            </p>
+          </Link>
+
+          <Link
+            to="/admin/usuarios"
+            className="group rounded-xl border border-slate-700 bg-slate-900 p-6 transition hover:-translate-y-1 hover:border-emerald-500 hover:bg-slate-800"
+          >
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="10" cy="7" r="4" />
+                <path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+
+            <h2 className="text-xl font-bold group-hover:text-emerald-400">
+              Usuarios
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-400">
+              Consultá y administrá los usuarios registrados.
+            </p>
+
+            <p className="mt-5 text-sm font-semibold text-emerald-400">
+              Ir a usuarios →
+            </p>
+          </Link>
         </section>
       </div>
     </main>
   );
 };
-

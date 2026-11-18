@@ -1,11 +1,5 @@
-
 import { useState } from "react";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 import { Home } from "./pages/Home";
@@ -13,6 +7,9 @@ import { DetallePeli } from "./pages/DetallePeli";
 import { Register } from "./pages/Register";
 import { Admin } from "./pages/Admin";
 import { Footer } from "./components/Footer";
+import { AdminPeliculas } from "./pages/AdminPeliculas";
+import { AdminSeries } from "./pages/AdminSeries";
+import { AdminUsuarios } from "./pages/AdminUsuarios";
 
 function Login({ onLogin }: { onLogin: () => void }) {
   return (
@@ -32,7 +29,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLogged, setIsLogged] = useState(
-    localStorage.getItem("isLogged") === "true"
+    localStorage.getItem("isLogged") === "true",
   );
 
   const handleLogin = () => {
@@ -59,30 +56,16 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
 
-            <Route
-              path="/login"
-              element={<Login onLogin={handleLogin} />}
-            />
+            <Route path="/login" element={<Login onLogin={handleLogin} />} />
 
-            <Route
-              path="/admin"
-              element={<Admin />}
-            />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/peliculas" element={<AdminPeliculas />} />
+            <Route path="/admin/series" element={<AdminSeries />} />
+            <Route path="/admin/usuarios" element={<AdminUsuarios />} />
 
-            <Route
-              path="/pelicula/:id"
-              element={<DetallePeli />}
-            />
+            <Route path="/pelicula/:id" element={<DetallePeli />} />
 
-            <Route
-              path="/register"
-              element={<Register />}
-            />
-
-            <Route
-              path="*"
-              element={<Navigate to="/" replace />}
-            />
+            <Route path="/register" element={<Register />} />
           </Routes>
         </div>
 
