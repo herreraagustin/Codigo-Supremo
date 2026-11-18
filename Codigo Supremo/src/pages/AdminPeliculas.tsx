@@ -5,6 +5,15 @@ import { obtenerCatalogo } from "../services/peliculas";
 import type { Contenido } from "../services/peliculas";
 import { obtenerCambios, guardarCambios } from "../services/almacenamiento";
 
+function normalizarTitulo(valor: string): string {
+  return valor
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase();
+}
+
 function obtenerGenerosDePelicula(pelicula: Contenido): string[] {
   const resultado: string[] = [];
 
@@ -44,7 +53,7 @@ function convertirNota(valor: unknown, escalaPorDefecto: number): number {
 
   const texto = String(valor).trim().replace(",", ".");
   const coincidencia = texto.match(
-    /^(\d+(?:\.\d+)?)\s*(?:\/\s*(\d+(?:\.\d+)?))?$/,
+    /^(\d+(?:\.\d+)?)\s*(?:\/\s*(\d+(?:\.\d+))?)?$/,
   );
 
   if (!coincidencia) return 0;
@@ -107,9 +116,7 @@ export const AdminPeliculas = () => {
     Number(anio) <= 2100;
 
   const calificacionValida =
-    Number.isInteger(calificacion) &&
-    calificacion >= 1 &&
-    calificacion <= 5;
+    Number.isInteger(calificacion) && calificacion >= 1 && calificacion <= 5;
 
   const generosValidos = generos.some((genero) => genero.trim() !== "");
 
@@ -126,10 +133,7 @@ export const AdminPeliculas = () => {
 
         const unicos = Array.from(
           new Map(
-            listaGeneros.map((genero) => [
-              genero.toLocaleLowerCase(),
-              genero,
-            ]),
+            listaGeneros.map((genero) => [genero.toLocaleLowerCase(), genero]),
           ).values(),
         ).sort((a, b) => a.localeCompare(b));
 
@@ -161,9 +165,7 @@ export const AdminPeliculas = () => {
 
   const alternarGenero = (genero: string) => {
     setGeneros((actuales) =>
-      actuales.some(
-        (g) => g.toLocaleLowerCase() === genero.toLocaleLowerCase(),
-      )
+      actuales.some((g) => g.toLocaleLowerCase() === genero.toLocaleLowerCase())
         ? actuales.filter(
             (g) => g.toLocaleLowerCase() !== genero.toLocaleLowerCase(),
           )
@@ -287,7 +289,6 @@ export const AdminPeliculas = () => {
     const nombreLimpio = titulo.trim();
     const sinopsisLimpia = descripcion.trim();
 
-    // Se validan todos los campos juntos para mostrar todos los avisos.
     if (
       !tituloValido ||
       !descripcionValida ||
@@ -295,6 +296,26 @@ export const AdminPeliculas = () => {
       !calificacionValida ||
       !generosValidos
     ) {
+      return;
+    }
+
+    // Evita duplicados por título y año.
+    // Ignora diferencias entre mayúsculas, tildes y espacios repetidos.
+    const duplicada = peliculas.some((pelicula) => {
+      const tituloExistente = normalizarTitulo(
+        pelicula.name || pelicula.title || "",
+      );
+
+      return (
+        tituloExistente === normalizarTitulo(nombreLimpio) &&
+        Number(pelicula.year) === Number(anio)
+      );
+    });
+
+    if (duplicada) {
+      setErrorFormulario(
+        `Ya existe "${nombreLimpio}" (${anio}) en el catálogo. No podés agregarla otra vez.`,
+      );
       return;
     }
 
@@ -487,9 +508,7 @@ export const AdminPeliculas = () => {
                     Año: {pelicula.year || "No disponible"}
                   </p>
 
-                  {nota > 0 && (
-                    <div className="mb-3">{estrellas(nota)}</div>
-                  )}
+                  {nota > 0 && <div className="mb-3">{estrellas(nota)}</div>}
 
                   {generosPelicula.length > 0 && (
                     <p className="mb-4 text-sm text-blue-300">
@@ -569,11 +588,7 @@ export const AdminPeliculas = () => {
               </button>
             </div>
 
-            <form
-              onSubmit={agregarPelicula}
-              noValidate
-              className="space-y-4"
-            >
+            <form onSubmit={agregarPelicula} noValidate className="space-y-4">
               {errorFormulario && (
                 <p
                   role="alert"
@@ -592,7 +607,10 @@ export const AdminPeliculas = () => {
                   id="titulo-pelicula"
                   type="text"
                   value={titulo}
-                  onChange={(e) => setTitulo(e.target.value)}
+                  onChange={(e) => {
+                    setTitulo(e.target.value);
+                    setErrorFormulario("");
+                  }}
                   className="w-full rounded-lg border border-gray-700 bg-[#070b14] px-3 py-2 outline-none focus:border-blue-500"
                   placeholder="Nombre de la película"
                 />
@@ -629,7 +647,10 @@ export const AdminPeliculas = () => {
                   id="anio-pelicula"
                   type="number"
                   value={anio}
-                  onChange={(e) => setAnio(e.target.value)}
+                  onChange={(e) => {
+                    setAnio(e.target.value);
+                    setErrorFormulario("");
+                  }}
                   min="1888"
                   max="2100"
                   className="w-full rounded-lg border border-gray-700 bg-[#070b14] px-3 py-2 outline-none focus:border-blue-500"
@@ -703,8 +724,7 @@ export const AdminPeliculas = () => {
                     {generosDisponibles.map((genero) => {
                       const seleccionado = generos.some(
                         (g) =>
-                          g.toLocaleLowerCase() ===
-                          genero.toLocaleLowerCase(),
+                          g.toLocaleLowerCase() === genero.toLocaleLowerCase(),
                       );
 
                       return (

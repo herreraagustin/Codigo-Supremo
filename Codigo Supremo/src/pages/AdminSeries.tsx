@@ -43,6 +43,54 @@ function obtenerGenerosDeSerie(serie: Contenido): string[] {
   return resultado;
 }
 
+function normalizarTitulo(valor: string): string {
+  return valor
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function obtenerAnioDeSerie(serie: Contenido): number {
+  const datos = serie as Contenido & {
+    first_air_date?: string;
+    firstAirDate?: string;
+    release_date?: string;
+    releaseDate?: string;
+    year?: number | string;
+  };
+
+  const valor =
+    datos.year ??
+    datos.first_air_date ??
+    datos.firstAirDate ??
+    datos.release_date ??
+    datos.releaseDate ??
+    "";
+
+  const coincidencia = String(valor).match(/\b(18\d{2}|19\d{2}|20\d{2}|2100)\b/);
+
+  return coincidencia ? Number(coincidencia[0]) : 0;
+}
+
+function esLaMismaSerie(
+  existente: Contenido,
+  tituloNuevo: string,
+  anioNuevo: number,
+): boolean {
+  const tituloExistente = normalizarTitulo(
+    String(existente.name ?? existente.title ?? ""),
+  );
+
+  return (
+    tituloExistente !== "" &&
+    tituloExistente === normalizarTitulo(tituloNuevo) &&
+    obtenerAnioDeSerie(existente) === anioNuevo
+  );
+}
+
 export const AdminSeries = () => {
   const [series, setSeries] = useState<Contenido[]>([]);
   const [generosDisponibles, setGenerosDisponibles] = useState<string[]>([]);
@@ -203,6 +251,7 @@ export const AdminSeries = () => {
 
     const nombreLimpio = titulo.trim();
     const sinopsisLimpia = descripcion.trim();
+    const anioNuevo = Number(anio);
 
     if (
       !tituloValido ||
@@ -214,28 +263,50 @@ export const AdminSeries = () => {
       return;
     }
 
-    const nuevaSerie: Contenido = {
-      id: `local-series-${Date.now()}`,
-      name: nombreLimpio,
-      title: nombreLimpio,
-      description: sinopsisLimpia,
-      overview: sinopsisLimpia,
-      year: Number(anio),
-      genres: [...generos],
-      imdbRating: `${calificacion}/5`,
-      rating: calificacion,
-      poster: imagenArchivo || poster.trim(),
-      type: "series",
-    };
-
     try {
       const cambios = obtenerCambios();
 
-      cambios.agregadas.series = [nuevaSerie, ...cambios.agregadas.series];
+      // Revisar el catálogo que está en pantalla y las series guardadas.
+      const catalogoCompleto = [
+        ...series,
+        ...cambios.agregadas.series,
+      ];
+
+      const duplicada = catalogoCompleto.some((serie) =>
+        esLaMismaSerie(serie, nombreLimpio, anioNuevo),
+      );
+
+      if (duplicada) {
+        setErrorFormulario(
+          `Ya existe "${nombreLimpio}" (${anioNuevo}) en el catálogo. No podés agregarla otra vez.`,
+        );
+        return;
+      }
+
+      const nuevaSerie: Contenido = {
+        id: `local-series-${Date.now()}`,
+        name: nombreLimpio,
+        title: nombreLimpio,
+        description: sinopsisLimpia,
+        overview: sinopsisLimpia,
+        year: anioNuevo,
+        genres: [...generos],
+        imdbRating: `${calificacion}/5`,
+        rating: calificacion,
+        poster: imagenArchivo || poster.trim(),
+        type: "series",
+      };
+
+      cambios.agregadas.series = [
+        nuevaSerie,
+        ...cambios.agregadas.series,
+      ];
 
       guardarCambios(cambios);
 
-      const guardada = obtenerCambios().agregadas.series.some(
+      const guardadas = obtenerCambios();
+
+      const guardada = guardadas.agregadas.series.some(
         (serie) => serie.id === nuevaSerie.id,
       );
 
@@ -533,7 +604,10 @@ export const AdminSeries = () => {
                   id="titulo-serie"
                   type="text"
                   value={titulo}
-                  onChange={(e) => setTitulo(e.target.value)}
+                  onChange={(e) => {
+                    setTitulo(e.target.value);
+                    setErrorFormulario("");
+                  }}
                   className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 outline-none focus:border-blue-500"
                   placeholder="Nombre de la serie"
                 />
@@ -578,7 +652,10 @@ export const AdminSeries = () => {
                   min="1888"
                   max="2100"
                   value={anio}
-                  onChange={(e) => setAnio(e.target.value)}
+                  onChange={(e) => {
+                    setAnio(e.target.value);
+                    setErrorFormulario("");
+                  }}
                   className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 outline-none focus:border-blue-500"
                   placeholder="Ej.: 2026"
                 />
@@ -625,7 +702,10 @@ export const AdminSeries = () => {
 
                       <button
                         type="button"
-                        onClick={() => setCalificacion(0)}
+                        onClick={() => {
+                          setCalificacion(0);
+                          setErrorFormulario("");
+                        }}
                         className="ml-2 text-xs text-blue-300 hover:underline"
                       >
                         Quitar
