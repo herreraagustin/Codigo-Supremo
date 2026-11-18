@@ -1,25 +1,21 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
 import Navbar from "./components/Navbar";
 import { Home } from "./pages/Home";
 import { DetallePeli } from "./pages/DetallePeli";
 import { Register } from "./pages/Register";
+import { Admin } from "./pages/Admin";
 import { Footer } from "./components/Footer";
-
-function Admin() {
-  return (
-    <main className="p-6 text-white">
-      <h1 className="text-2xl font-bold">
-        Panel de Administración
-      </h1>
-    </main>
-  );
-}
+import { AdminPeliculas } from "./pages/AdminPeliculas";
+import { AdminSeries } from "./pages/AdminSeries";
+import { AdminUsuarios } from "./pages/AdminUsuarios";
 
 function Login({ onLogin }: { onLogin: () => void }) {
   return (
     <main className="p-6 text-white">
       <h1 className="text-2xl font-bold">Login</h1>
+
       <button
         onClick={onLogin}
         className="mt-4 rounded bg-blue-500 px-4 py-2 font-semibold"
@@ -33,7 +29,7 @@ function Login({ onLogin }: { onLogin: () => void }) {
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLogged, setIsLogged] = useState(
-    localStorage.getItem("isLogged") === "true"
+    localStorage.getItem("isLogged") === "true",
   );
 
   const handleLogin = () => {
@@ -60,22 +56,14 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
 
-            <Route
-              path="/login"
-              element={<Login onLogin={handleLogin} />}
-            />
+            <Route path="/login" element={<Login onLogin={handleLogin} />} />
 
-            <Route
-              path="/admin"
-              element={
-                isLogged ? <Admin /> : <Navigate to="/login" replace />
-              }
-            />
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin/peliculas" element={<AdminPeliculas />} />
+            <Route path="/admin/series" element={<AdminSeries />} />
+            <Route path="/admin/usuarios" element={<AdminUsuarios />} />
 
-            <Route
-              path="/pelicula/:id"
-              element={<DetallePeli />}
-            />
+            <Route path="/pelicula/:id" element={<DetallePeli />} />
 
             <Route path="/register" element={<Register />} />
           </Routes>
