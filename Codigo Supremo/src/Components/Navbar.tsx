@@ -10,7 +10,7 @@ type NavbarProps = {
 
 const links = [
   { to: "/", label: "Inicio" },
-  { to: "/admin", label: "Admin" },
+  { to: "/planes", label: "Planes" },
 ];
 
 export default function Navbar({
