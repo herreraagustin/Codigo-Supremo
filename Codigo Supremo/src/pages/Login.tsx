@@ -1,6 +1,12 @@
+type LoginProps = {
+  onLogin: () => void;
+};
 
-export const Login = () => {
+export const Login = ({ onLogin }: LoginProps) => {
   return (
-    <div>Login</div>
-  )
-}
+    <div>
+      Login
+      <button onClick={onLogin}>Ingresar</button>
+    </div>
+  );
+};
