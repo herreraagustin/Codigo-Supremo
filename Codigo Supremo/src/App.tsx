@@ -11,6 +11,7 @@ import { Admin } from "./pages/Admin";
 import { AdminPeliculas } from "./pages/AdminPeliculas";
 import { AdminSeries } from "./pages/AdminSeries";
 import { AdminUsuarios } from "./pages/AdminUsuarios";
+import Plans from "./pages/Plan";
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -83,6 +84,9 @@ export default function App() {
               path="/admin/usuarios"
               element={protect(<AdminUsuarios />)}
             />
+            <Route 
+            path="/planes" 
+            element={<Plans />} />
           </Routes>
         </div>
 
