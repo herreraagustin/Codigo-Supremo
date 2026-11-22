@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
@@ -11,6 +12,7 @@ import { Admin } from "./pages/Admin";
 import { AdminPeliculas } from "./pages/AdminPeliculas";
 import { AdminSeries } from "./pages/AdminSeries";
 import { AdminUsuarios } from "./pages/AdminUsuarios";
+import { Bienvenida } from "./pages/Bienvenida";
 import Plans from "./pages/Plan";
 
 export default function App() {
@@ -45,30 +47,42 @@ export default function App() {
 
         <div className="flex-1">
           <Routes>
-            <Route
-              path="/"
-              element={<Home />}
-            />
+            {/* Página de bienvenida */}
+            <Route path="/" element={<Bienvenida />} />
 
+            {/* Inicio: catálogo de películas y series */}
+            <Route path="/home" element={protect(<Home />)} />
+
+            {/* Detalles de películas y series */}
             <Route
               path="/pelicula/:id"
-              element={<DetallePeli />}
+              element={protect(<DetallePeli />)}
             />
 
+            {/* Cuenta */}
             <Route
               path="/login"
-              element={<Login onLogin={handleLogin} />}
+              element={
+                isLogged ? (
+                  <Navigate to="/home" replace />
+                ) : (
+                  <Login onLogin={handleLogin} />
+                )
+              }
             />
 
             <Route
               path="/register"
-              element={<Register />}
+              element={
+                isLogged ? <Navigate to="/home" replace /> : <Register />
+              }
             />
 
-            <Route
-              path="/admin"
-              element={protect(<Admin />)}
-            />
+            {/* Planes */}
+            <Route path="/planes" element={<Plans />} />
+
+            {/* Administración */}
+            <Route path="/admin" element={protect(<Admin />)} />
 
             <Route
               path="/admin/peliculas"
@@ -84,9 +98,12 @@ export default function App() {
               path="/admin/usuarios"
               element={protect(<AdminUsuarios />)}
             />
-            <Route 
-            path="/planes" 
-            element={<Plans />} />
+
+            {/* Ruta provisional para direcciones inexistentes */}
+            <Route
+              path="*"
+              element={<Navigate to="/" replace />}
+            />
           </Routes>
         </div>
 
