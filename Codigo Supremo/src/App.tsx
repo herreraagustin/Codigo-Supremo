@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
@@ -13,12 +12,13 @@ import { AdminPeliculas } from "./pages/AdminPeliculas";
 import { AdminSeries } from "./pages/AdminSeries";
 import { AdminUsuarios } from "./pages/AdminUsuarios";
 import { Bienvenida } from "./pages/Bienvenida";
+import { Error404 } from "./pages/Error404";
 import Plans from "./pages/Plan";
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLogged, setIsLogged] = useState(
-    localStorage.getItem("isLogged") === "true"
+    localStorage.getItem("isLogged") === "true",
   );
 
   const handleLogin = () => {
@@ -54,10 +54,7 @@ export default function App() {
             <Route path="/home" element={protect(<Home />)} />
 
             {/* Detalles de películas y series */}
-            <Route
-              path="/pelicula/:id"
-              element={protect(<DetallePeli />)}
-            />
+            <Route path="/pelicula/:id" element={protect(<DetallePeli />)} />
 
             {/* Cuenta */}
             <Route
@@ -89,21 +86,15 @@ export default function App() {
               element={protect(<AdminPeliculas />)}
             />
 
-            <Route
-              path="/admin/series"
-              element={protect(<AdminSeries />)}
-            />
+            <Route path="/admin/series" element={protect(<AdminSeries />)} />
 
             <Route
               path="/admin/usuarios"
               element={protect(<AdminUsuarios />)}
             />
 
-            {/* Ruta provisional para direcciones inexistentes */}
-            <Route
-              path="*"
-              element={<Navigate to="/" replace />}
-            />
+            {/* Página no encontrada */}
+            <Route path="*" element={<Error404 />} />
           </Routes>
         </div>
 
