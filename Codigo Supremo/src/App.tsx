@@ -11,6 +11,7 @@ import { Admin } from "./pages/Admin";
 import { AdminPeliculas } from "./pages/AdminPeliculas";
 import { AdminSeries } from "./pages/AdminSeries";
 import { AdminUsuarios } from "./pages/AdminUsuarios";
+import { Bienvenida } from "./pages/Bienvenida";
 import { Error404 } from "./pages/Error404";
 import Plans from "./pages/Plan";
 
@@ -46,14 +47,38 @@ export default function App() {
 
         <div className="flex-1">
           <Routes>
-            <Route path="/" element={<Home />} />
+            {/* Página de bienvenida */}
+            <Route path="/" element={<Bienvenida />} />
 
-            <Route path="/pelicula/:id" element={<DetallePeli />} />
+            {/* Inicio: catálogo de películas y series */}
+            <Route path="/home" element={protect(<Home />)} />
 
-            <Route path="/login" element={<Login onLogin={handleLogin} />} />
+            {/* Detalles de películas y series */}
+            <Route path="/pelicula/:id" element={protect(<DetallePeli />)} />
 
-            <Route path="/register" element={<Register />} />
+            {/* Cuenta */}
+            <Route
+              path="/login"
+              element={
+                isLogged ? (
+                  <Navigate to="/home" replace />
+                ) : (
+                  <Login onLogin={handleLogin} />
+                )
+              }
+            />
 
+            <Route
+              path="/register"
+              element={
+                isLogged ? <Navigate to="/home" replace /> : <Register />
+              }
+            />
+
+            {/* Planes */}
+            <Route path="/planes" element={<Plans />} />
+
+            {/* Administración */}
             <Route path="/admin" element={protect(<Admin />)} />
 
             <Route
@@ -67,8 +92,8 @@ export default function App() {
               path="/admin/usuarios"
               element={protect(<AdminUsuarios />)}
             />
-            <Route path="/planes" element={<Plans />} />
 
+            {/* Página no encontrada */}
             <Route path="*" element={<Error404 />} />
           </Routes>
         </div>
