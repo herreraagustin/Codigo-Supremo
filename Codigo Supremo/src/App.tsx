@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
@@ -17,17 +18,28 @@ import Plans from "./pages/Plan";
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
+
   const [isLogged, setIsLogged] = useState(
     localStorage.getItem("isLogged") === "true",
   );
 
-  const handleLogin = () => {
+  const [userName, setUserName] = useState(
+    localStorage.getItem("userName") || "",
+  );
+
+  const handleLogin = (nombreUsuario: string) => {
     localStorage.setItem("isLogged", "true");
+    localStorage.setItem("userName", nombreUsuario);
+
+    setUserName(nombreUsuario);
     setIsLogged(true);
   };
 
   const handleLogout = () => {
     localStorage.removeItem("isLogged");
+    localStorage.removeItem("userName");
+
+    setUserName("");
     setIsLogged(false);
   };
 
@@ -42,6 +54,7 @@ export default function App() {
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           isLogged={isLogged}
+          userName={userName}
           onLogout={handleLogout}
         />
 

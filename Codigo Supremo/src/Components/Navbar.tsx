@@ -6,11 +6,12 @@ type NavbarProps = {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   isLogged: boolean;
+  userName: string;
   onLogout: () => void;
 };
 
 const links = [
-  { to: "/catalogo", label: "Inicio" },
+  { to: "/home", label: "Inicio" },
   { to: "/planes", label: "Planes" },
 ];
 
@@ -18,6 +19,7 @@ export default function Navbar({
   searchTerm,
   onSearchChange,
   isLogged,
+  userName,
   onLogout,
 }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -31,15 +33,15 @@ export default function Navbar({
   const cerrarMenu = () => setMenuOpen(false);
 
   const mostrarBuscador =
-    isLogged && location.pathname === "/catalogo";
+    isLogged && location.pathname === "/home";
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0b1220]/90 backdrop-blur">
       <nav className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
-        {/* Logo: conserva el diseño original */}
+        {/* Logo */}
         <Link
-          to={isLogged ? "/catalogo" : "/"}
-          className="flex items-center gap-2 text-lg font-bold text-white"
+          to={isLogged ? "/home" : "/"}
+          className="flex shrink-0 items-center gap-2 text-lg font-bold text-white"
           onClick={cerrarMenu}
         >
           <span
@@ -49,22 +51,18 @@ export default function Navbar({
           CineRolling
         </Link>
 
-        {/* Navegación: solo con sesión iniciada */}
+        {/* Navegación */}
         {isLogged && (
           <div className="ml-4 hidden items-center gap-6 md:flex">
             {links.map((l) => (
-              <NavLink
-                key={l.to}
-                to={l.to}
-                className={linkClass}
-              >
+              <NavLink key={l.to} to={l.to} className={linkClass}>
                 {l.label}
               </NavLink>
             ))}
           </div>
         )}
 
-        {/* Buscador: solo con sesión y en el catálogo */}
+        {/* Buscador */}
         {mostrarBuscador && (
           <div className="mx-auto hidden w-full max-w-md md:block">
             <label className="relative block">
@@ -99,39 +97,49 @@ export default function Navbar({
         {/* Acciones de escritorio */}
         <div className="ml-auto hidden items-center gap-3 md:flex">
           {isLogged ? (
-            <button
-              type="button"
-              onClick={onLogout}
-              className="rounded-full bg-blue-500 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
-            >
-              Cerrar sesión
-            </button>
+            <>
+              <div className="flex items-center gap-2">
+                <div
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 text-sm font-bold text-white ring-2 ring-white/10"
+                  aria-hidden="true"
+                >
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+
+                <span
+                  className="max-w-40 truncate text-sm font-semibold text-white"
+                  title={userName}
+                >
+                  {userName}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={onLogout}
+                className="rounded-full bg-blue-500 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
+              >
+                Cerrar sesión
+              </button>
+            </>
           ) : (
             <>
               <Link
                 to="/register"
-                className="rounded-full bg-blue-500 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
+                className="rounded-full bg-blue-500 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-400"
               >
                 Registrarse
               </Link>
 
               <Link
                 to="/login"
-                className="rounded-full border border-white/10 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#151d2e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
+                className="rounded-full border border-white/10 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#151d2e]"
               >
                 Iniciar sesión
               </Link>
             </>
           )}
         </div>
-
-        {/* Avatar: solo con sesión iniciada */}
-        {isLogged && (
-          <div
-            className="hidden h-8 w-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 ring-2 ring-white/10 md:block"
-            aria-hidden="true"
-          />
-        )}
 
         {/* Botón hamburguesa */}
         <button
@@ -163,6 +171,25 @@ export default function Navbar({
         <div className="space-y-4 border-t border-white/5 px-4 py-4 md:hidden">
           {isLogged ? (
             <>
+              {/* Usuario */}
+              <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                <div
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 font-bold text-white"
+                  aria-hidden="true"
+                >
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+
+                <div className="min-w-0">
+                  <p className="text-xs text-slate-400">
+                    Sesión iniciada
+                  </p>
+                  <p className="truncate text-sm font-semibold text-white">
+                    {userName}
+                  </p>
+                </div>
+              </div>
+
               {mostrarBuscador && (
                 <input
                   type="text"
@@ -192,7 +219,7 @@ export default function Navbar({
                   onLogout();
                   cerrarMenu();
                 }}
-                className="w-full rounded-full bg-blue-500 px-4 py-2 text-sm font-semibold text-white"
+                className="w-full rounded-full bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-400"
               >
                 Cerrar sesión
               </button>
