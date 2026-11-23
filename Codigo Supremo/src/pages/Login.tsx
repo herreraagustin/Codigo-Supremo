@@ -1,3 +1,4 @@
+
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -16,7 +17,7 @@ import {
 import { administradores } from "../Data/Usuarios";
 
 type LoginProps = {
-  onLogin: () => void;
+  onLogin: (nombreUsuario: string) => void;
 };
 
 export const Login = ({ onLogin }: LoginProps) => {
@@ -40,7 +41,8 @@ export const Login = ({ onLogin }: LoginProps) => {
       return;
     }
 
-    onLogin();
+    // Enviar el nombre del usuario a App.tsx
+    onLogin(usuarioEncontrado.nombreUsuario);
   };
 
   return (
