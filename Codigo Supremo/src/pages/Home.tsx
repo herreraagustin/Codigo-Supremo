@@ -25,7 +25,6 @@ function alternarGenero(genero: string, actual: string | null): string | null {
   return actual?.toLowerCase() === genero.toLowerCase() ? null : genero;
 }
 
-
 function filtrarPorGenero(lista: Contenido[], genero: string | null) {
   if (!genero) return lista;
 
@@ -36,7 +35,24 @@ function filtrarPorGenero(lista: Contenido[], genero: string | null) {
   );
 }
 
-export const Home = () => {
+function normalizar(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function filtrarPorBusqueda(lista: Contenido[], busqueda: string) {
+  const termino = normalizar(busqueda);
+  if (!termino) return lista;
+
+  return lista.filter((item) =>
+    normalizar(String(item.name ?? item.title ?? "")).includes(termino)
+  );
+}
+
+export const Home = ({ searchTerm }: { searchTerm: string }) => {
   const [peliculas, setPeliculas] = useState<Contenido[]>([]);
   const [series, setSeries] = useState<Contenido[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -97,10 +113,8 @@ export const Home = () => {
       void cargarCatalogos();
     }
 
-    // Cambios realizados en esta misma pestaña.
     window.addEventListener("catalogo-actualizado", actualizarCatalogo);
 
-    // Cambios realizados desde otras pestañas.
     function detectarCambiosEntrePestanas(evento: StorageEvent) {
       if (evento.key === "cinerolling_cambios") {
         actualizarCatalogo();
@@ -121,8 +135,15 @@ export const Home = () => {
   const generosPeliculas = listarGeneros(peliculas);
   const generosSeries = listarGeneros(series);
 
-  const peliculasMostradas = filtrarPorGenero(peliculas, generoPelicula);
-  const seriesMostradas = filtrarPorGenero(series, generoSerie);
+  const peliculasMostradas = filtrarPorBusqueda(
+    filtrarPorGenero(peliculas, generoPelicula),
+    searchTerm
+  );
+  const seriesMostradas = filtrarPorBusqueda(
+    filtrarPorGenero(series, generoSerie),
+    searchTerm
+  );
+  const buscando = searchTerm.trim() !== "";
 
   const mostrarCatalogo = (
     titulo: string,
@@ -140,9 +161,11 @@ export const Home = () => {
 
       {visibles.length === 0 ? (
         <p className="text-slate-400">
-          {generoActivo
-            ? `No hay contenido del género "${generoActivo}".`
-            : "Todavía no hay contenido para mostrar."}
+          {buscando
+            ? `No se encontraron resultados para "${searchTerm}".`
+            : generoActivo
+              ? `No hay contenido del género "${generoActivo}".`
+              : "Todavía no hay contenido para mostrar."}
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -156,7 +179,7 @@ export const Home = () => {
 
   return (
     <>
-      <Hero movies={peliculas.map(mapContenido)} />
+      {!buscando && <Hero movies={peliculas.map(mapContenido)} />}
 
       <main className="bg-[#070b14] p-6 text-white md:p-10">
         {cargando ? (
