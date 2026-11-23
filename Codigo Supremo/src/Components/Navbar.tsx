@@ -10,7 +10,7 @@ type NavbarProps = {
 };
 
 const links = [
-  { to: "/catalogo", label: "Inicio" },
+  { to: "/home", label: "Inicio" },
   { to: "/planes", label: "Planes" },
 ];
 
@@ -31,14 +31,14 @@ export default function Navbar({
   const cerrarMenu = () => setMenuOpen(false);
 
   const mostrarBuscador =
-    isLogged && location.pathname === "/catalogo";
+    isLogged && location.pathname === "/home";
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0b1220]/90 backdrop-blur">
       <nav className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
-        {/* Logo: conserva el diseño original */}
+        {/* Logo: Home con sesión iniciada, bienvenida sin sesión */}
         <Link
-          to={isLogged ? "/catalogo" : "/"}
+          to={isLogged ? "/home" : "/"}
           className="flex items-center gap-2 text-lg font-bold text-white"
           onClick={cerrarMenu}
         >
@@ -53,18 +53,14 @@ export default function Navbar({
         {isLogged && (
           <div className="ml-4 hidden items-center gap-6 md:flex">
             {links.map((l) => (
-              <NavLink
-                key={l.to}
-                to={l.to}
-                className={linkClass}
-              >
+              <NavLink key={l.to} to={l.to} className={linkClass}>
                 {l.label}
               </NavLink>
             ))}
           </div>
         )}
 
-        {/* Buscador: solo con sesión y en el catálogo */}
+        {/* Buscador: solo con sesión y en Home */}
         {mostrarBuscador && (
           <div className="mx-auto hidden w-full max-w-md md:block">
             <label className="relative block">
