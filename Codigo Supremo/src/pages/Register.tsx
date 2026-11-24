@@ -62,7 +62,10 @@ export const Register = () => {
       return;
     }
 
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    if (
+      !email.trim() ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+    ) {
       setError("Ingresá un correo electrónico válido.");
       return;
     }
@@ -80,21 +83,12 @@ export const Register = () => {
     const cuentas = obtenerCuentas();
 
     const correoExiste = cuentas.some(
-      (cuenta) => cuenta.email.toLowerCase() === email.trim().toLowerCase(),
-    );
-
-    const usuarioExiste = cuentas.some(
       (cuenta) =>
-        cuenta.nombreUsuario.toLowerCase() ===
-        nombreUsuario.trim().toLowerCase(),
+        cuenta.email.toLowerCase() === email.trim().toLowerCase(),
     );
 
-    if (correoExiste || usuarioExiste) {
-      setError(
-        correoExiste
-          ? "Ya existe una cuenta registrada con ese correo."
-          : "Ese nombre de usuario ya está en uso.",
-      );
+    if (correoExiste) {
+      setError("Ya existe una cuenta registrada con ese correo.");
       return;
     }
 
@@ -136,15 +130,16 @@ export const Register = () => {
 
     const cuentas = obtenerCuentas();
 
+    // El correo es único; el nombre de usuario puede repetirse.
     const cuentaDuplicada = cuentas.some(
       (cuenta) =>
-        cuenta.email.toLowerCase() === email.trim().toLowerCase() ||
-        cuenta.nombreUsuario.toLowerCase() ===
-          nombreUsuario.trim().toLowerCase(),
+        cuenta.email.toLowerCase() === email.trim().toLowerCase(),
     );
 
     if (cuentaDuplicada) {
-      setError("El usuario o correo ya está registrado. Volvé al registro.");
+      setError(
+        "Ya existe una cuenta registrada con ese correo. Volvé al registro.",
+      );
       setPaso(1);
       return;
     }
@@ -411,10 +406,14 @@ export const Register = () => {
                         : "border-white/10 bg-[#080e19] hover:border-white/20"
                     }`}
                   >
-                    <span className="block text-sm font-bold">{plan.name}</span>
+                    <span className="block text-sm font-bold">
+                      {plan.name}
+                    </span>
+
                     <span className="mt-2 block text-lg font-bold text-cyan-300">
                       {plan.price.split("/")[0]}
                     </span>
+
                     <span className="text-xs text-slate-400">por mes</span>
 
                     <ul className="mt-3 space-y-1">
@@ -442,7 +441,9 @@ export const Register = () => {
                     </p>
                   </div>
 
-                  <p className="font-bold text-cyan-300">{planActual.price}</p>
+                  <p className="font-bold text-cyan-300">
+                    {planActual.price}
+                  </p>
                 </div>
               </div>
 

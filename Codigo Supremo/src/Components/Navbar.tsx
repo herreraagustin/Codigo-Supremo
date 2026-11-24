@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 
@@ -6,19 +5,18 @@ type NavbarProps = {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   isLogged: boolean;
+  isAdmin: boolean;
   userName: string;
   onLogout: () => void;
 };
 
-const links = [
-  { to: "/home", label: "Inicio" },
-  { to: "/planes", label: "Planes" },
-];
+const links = [{ to: "/home", label: "Inicio" }];
 
 export default function Navbar({
   searchTerm,
   onSearchChange,
   isLogged,
+  isAdmin,
   userName,
   onLogout,
 }: NavbarProps) {
@@ -32,8 +30,7 @@ export default function Navbar({
 
   const cerrarMenu = () => setMenuOpen(false);
 
-  const mostrarBuscador =
-    isLogged && location.pathname === "/home";
+  const mostrarBuscador = isLogged && location.pathname === "/home";
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0b1220]/90 backdrop-blur">
@@ -51,7 +48,7 @@ export default function Navbar({
           CineRolling
         </Link>
 
-        {/* Navegación */}
+        {/* Navegación de escritorio */}
         {isLogged && (
           <div className="ml-4 hidden items-center gap-6 md:flex">
             {links.map((l) => (
@@ -59,6 +56,12 @@ export default function Navbar({
                 {l.label}
               </NavLink>
             ))}
+
+            {isAdmin && (
+              <NavLink to="/admin" className={linkClass}>
+                Admin
+              </NavLink>
+            )}
           </div>
         )}
 
@@ -211,6 +214,16 @@ export default function Navbar({
                     {l.label}
                   </NavLink>
                 ))}
+
+                {isAdmin && (
+                  <NavLink
+                    to="/admin"
+                    className={linkClass}
+                    onClick={cerrarMenu}
+                  >
+                    Admin
+                  </NavLink>
+                )}
               </div>
 
               <button

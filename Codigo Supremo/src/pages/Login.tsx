@@ -1,11 +1,10 @@
-
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import {
   FiArrowLeft,
   FiFilm,
   FiAlertCircle,
-  FiUser,
+  FiMail,
   FiLock,
   FiEye,
   FiEyeOff,
@@ -29,7 +28,7 @@ type CuentaRegistrada = {
 };
 
 export const Login = ({ onLogin }: LoginProps) => {
-  const [nombreUsuario, setNombreUsuario] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [error, setError] = useState("");
@@ -38,13 +37,12 @@ export const Login = ({ onLogin }: LoginProps) => {
     e.preventDefault();
     setError("");
 
-    const usuarioIngresado = nombreUsuario.trim();
+    const emailIngresado = email.trim().toLowerCase();
 
-    // Primero comprobar las cuentas de administrador existentes.
     const administradorEncontrado = administradores.find(
       (usuario) =>
-        usuario.nombreUsuario.toLowerCase() ===
-          usuarioIngresado.toLowerCase() &&
+        (usuario.email.toLowerCase() === emailIngresado ||
+          usuario.nombreUsuario.toLowerCase() === emailIngresado) &&
         usuario.password === password,
     );
 
@@ -53,29 +51,29 @@ export const Login = ({ onLogin }: LoginProps) => {
       return;
     }
 
-    // Después comprobar las cuentas creadas mediante Register.
     let cuentasRegistradas: CuentaRegistrada[] = [];
 
     try {
       const datosGuardados = localStorage.getItem("cuentas");
       cuentasRegistradas = datosGuardados
-        ? JSON.parse(datosGuardados)
+        ? (JSON.parse(datosGuardados) as CuentaRegistrada[])
         : [];
     } catch {
-      setError("No se pudieron leer las cuentas guardadas. Intentá nuevamente.");
+      setError(
+        "No se pudieron leer las cuentas guardadas. Intentá nuevamente.",
+      );
       return;
     }
 
     const cuentaEncontrada = cuentasRegistradas.find(
       (cuenta) =>
-        cuenta.nombreUsuario.toLowerCase() ===
-          usuarioIngresado.toLowerCase() &&
+        cuenta.email.toLowerCase() === emailIngresado &&
         cuenta.password === password &&
         cuenta.rol === "user",
     );
 
     if (!cuentaEncontrada) {
-      setError("El usuario o la contraseña son incorrectos.");
+      setError("El correo electrónico o la contraseña son incorrectos.");
       return;
     }
 
@@ -120,27 +118,27 @@ export const Login = ({ onLogin }: LoginProps) => {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label
-                htmlFor="nombreUsuario"
+                htmlFor="email"
                 className="mb-2 block text-sm font-medium text-slate-200"
               >
-                Nombre de usuario
+                Correo electrónico o usuario administrador
               </label>
 
               <div className="relative">
-                <FiUser
+                <FiMail
                   size={18}
                   className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
                 />
 
                 <input
-                  id="nombreUsuario"
+                  id="email"
                   type="text"
-                  value={nombreUsuario}
+                  value={email}
                   onChange={(e) => {
-                    setNombreUsuario(e.target.value);
+                    setEmail(e.target.value);
                     setError("");
                   }}
-                  placeholder="Ingresá tu usuario"
+                  placeholder="tucorreo@ejemplo.com"
                   autoComplete="username"
                   required
                   className="w-full rounded-xl border border-white/10 bg-[#080e19] py-3 pl-11 pr-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10"
@@ -222,7 +220,8 @@ export const Login = ({ onLogin }: LoginProps) => {
                 Acceso protegido
               </p>
               <p className="mt-1 text-xs leading-5 text-slate-400">
-                Ingresá con tu cuenta registrada o con las credenciales de administrador.
+                Ingresá con el correo de tu cuenta registrada o con el correo
+                o nombre de usuario de administrador.
               </p>
             </div>
           </div>
