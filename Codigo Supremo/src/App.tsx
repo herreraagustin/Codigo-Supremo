@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
@@ -61,7 +60,12 @@ export default function App() {
         <div className="flex-1">
           <Routes>
             {/* Página de bienvenida */}
-            <Route path="/" element={<Bienvenida />} />
+            <Route
+              path="/"
+              element={
+                isLogged ? <Navigate to="/home" replace /> : <Bienvenida />
+              }
+            />
 
             {/* Inicio: catálogo de películas y series */}
             <Route path="/home" element={protect(<Home />)} />

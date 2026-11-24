@@ -20,6 +20,14 @@ type LoginProps = {
   onLogin: (nombreUsuario: string) => void;
 };
 
+type CuentaRegistrada = {
+  nombreUsuario: string;
+  email: string;
+  password: string;
+  rol: "user";
+  plan: string;
+};
+
 export const Login = ({ onLogin }: LoginProps) => {
   const [nombreUsuario, setNombreUsuario] = useState("");
   const [password, setPassword] = useState("");
@@ -30,19 +38,48 @@ export const Login = ({ onLogin }: LoginProps) => {
     e.preventDefault();
     setError("");
 
-    const usuarioEncontrado = administradores.find(
+    const usuarioIngresado = nombreUsuario.trim();
+
+    // Primero comprobar las cuentas de administrador existentes.
+    const administradorEncontrado = administradores.find(
       (usuario) =>
-        usuario.nombreUsuario === nombreUsuario.trim() &&
+        usuario.nombreUsuario.toLowerCase() ===
+          usuarioIngresado.toLowerCase() &&
         usuario.password === password,
     );
 
-    if (!usuarioEncontrado) {
-      setError("El nombre de usuario o la contraseña son incorrectos.");
+    if (administradorEncontrado) {
+      onLogin(administradorEncontrado.nombreUsuario);
       return;
     }
 
-    // Enviar el nombre del usuario a App.tsx
-    onLogin(usuarioEncontrado.nombreUsuario);
+    // Después comprobar las cuentas creadas mediante Register.
+    let cuentasRegistradas: CuentaRegistrada[] = [];
+
+    try {
+      const datosGuardados = localStorage.getItem("cuentas");
+      cuentasRegistradas = datosGuardados
+        ? JSON.parse(datosGuardados)
+        : [];
+    } catch {
+      setError("No se pudieron leer las cuentas guardadas. Intentá nuevamente.");
+      return;
+    }
+
+    const cuentaEncontrada = cuentasRegistradas.find(
+      (cuenta) =>
+        cuenta.nombreUsuario.toLowerCase() ===
+          usuarioIngresado.toLowerCase() &&
+        cuenta.password === password &&
+        cuenta.rol === "user",
+    );
+
+    if (!cuentaEncontrada) {
+      setError("El usuario o la contraseña son incorrectos.");
+      return;
+    }
+
+    onLogin(cuentaEncontrada.nombreUsuario);
   };
 
   return (
@@ -185,8 +222,7 @@ export const Login = ({ onLogin }: LoginProps) => {
                 Acceso protegido
               </p>
               <p className="mt-1 text-xs leading-5 text-slate-400">
-                Por ahora, el inicio de sesión está habilitado para los
-                administradores configurados en el proyecto.
+                Ingresá con tu cuenta registrada o con las credenciales de administrador.
               </p>
             </div>
           </div>
