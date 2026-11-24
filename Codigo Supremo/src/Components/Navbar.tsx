@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
 type NavbarProps = {
   searchTerm: string;
@@ -10,6 +10,7 @@ type NavbarProps = {
 
 const links = [
   { to: "/", label: "Inicio" },
+  { to: "/peliculas", label: "Películas" },
   { to: "/planes", label: "Planes" },
 ];
 
@@ -20,6 +21,14 @@ export default function Navbar({
   onLogout,
 }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  // Guarda el texto y, si no estás en Inicio o Películas, te lleva al Home
+  const handleSearch = (value: string) => {
+    onSearchChange(value);
+    if (pathname !== "/" && pathname !== "/peliculas") navigate("/");
+  };
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `text-sm font-semibold transition-colors ${
@@ -39,7 +48,6 @@ export default function Navbar({
           CineRolling
         </Link>
 
-        {/* Links (desktop) */}
         <div className="ml-4 hidden items-center gap-6 md:flex">
           {links.map((l) => (
             <NavLink key={l.to} to={l.to} className={linkClass} end={l.to === "/"}>
@@ -48,7 +56,6 @@ export default function Navbar({
           ))}
         </div>
 
-        {/* Buscador (desktop) */}
         <div className="mx-auto hidden w-full max-w-md md:block">
           <label className="relative block">
             <span className="sr-only">Buscar películas por nombre</span>
@@ -67,7 +74,7 @@ export default function Navbar({
             <input
               type="text"
               value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
               placeholder="Buscar películas por nombre..."
               className="w-full rounded-full bg-[#151d2e] py-2 pl-10 pr-4 text-sm text-white placeholder-slate-400 outline-none ring-1 ring-transparent transition focus:ring-blue-500"
             />
@@ -120,7 +127,7 @@ export default function Navbar({
           <input
             type="text"
             value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             placeholder="Buscar películas por nombre..."
             className="w-full rounded-full bg-[#151d2e] px-4 py-2 text-sm text-white placeholder-slate-400 outline-none focus:ring-1 focus:ring-blue-500"
           />

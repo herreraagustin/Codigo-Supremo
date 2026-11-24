@@ -13,6 +13,7 @@ import { AdminSeries } from "./pages/AdminSeries";
 import { AdminUsuarios } from "./pages/AdminUsuarios";
 import { Error404 } from "./pages/Error404";
 import Plans from "./pages/Plan";
+import { Peliculas } from "./pages/Peliculas";
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -62,6 +63,8 @@ export default function App() {
             />
 
             <Route path="/admin/series" element={protect(<AdminSeries />)} />
+
+            <Route path="/peliculas" element={<Peliculas searchTerm={searchTerm} />} />
 
             <Route
               path="/admin/usuarios"
