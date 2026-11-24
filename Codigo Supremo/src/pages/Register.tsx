@@ -1,6 +1,7 @@
 
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import {
   FiArrowLeft,
   FiFilm,
@@ -11,9 +12,8 @@ import {
   FiEyeOff,
   FiAlertCircle,
   FiCreditCard,
-  FiCheckCircle,
-  FiShield,
   FiArrowRight,
+  FiShield,
 } from "react-icons/fi";
 import { plans } from "../Data/Plans";
 
@@ -49,7 +49,6 @@ export const Register = () => {
   const [cvv, setCvv] = useState("");
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [error, setError] = useState("");
-  const [registroExitoso, setRegistroExitoso] = useState(false);
 
   const planActual =
     plans.find((plan) => plan.id === planSeleccionado) ?? plans[0];
@@ -63,7 +62,7 @@ export const Register = () => {
       return;
     }
 
-    if (!email.trim() || !email.includes("@")) {
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setError("Ingresá un correo electrónico válido.");
       return;
     }
@@ -81,8 +80,7 @@ export const Register = () => {
     const cuentas = obtenerCuentas();
 
     const correoExiste = cuentas.some(
-      (cuenta) =>
-        cuenta.email.toLowerCase() === email.trim().toLowerCase(),
+      (cuenta) => cuenta.email.toLowerCase() === email.trim().toLowerCase(),
     );
 
     const usuarioExiste = cuentas.some(
@@ -103,21 +101,19 @@ export const Register = () => {
     setPaso(2);
   };
 
-  const confirmarRegistro = (e: FormEvent<HTMLFormElement>) => {
+  const confirmarRegistro = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
     if (titular.trim().length < 3) {
-      setError("Ingresá el nombre del titular ficticio.");
+      setError("Ingresá el nombre del titular.");
       return;
     }
 
     const digitosTarjeta = numeroTarjeta.replace(/\D/g, "");
 
     if (digitosTarjeta.length < 12 || digitosTarjeta.length > 19) {
-      setError(
-        "Ingresá un número de tarjeta ficticio válido, de 12 a 19 dígitos.",
-      );
+      setError("El número debe contener entre 12 y 19 dígitos.");
       return;
     }
 
@@ -166,46 +162,28 @@ export const Register = () => {
         "cuentas",
         JSON.stringify([...cuentas, nuevaCuenta]),
       );
-      setRegistroExitoso(true);
+
+      const resultado = await Swal.fire({
+        title: "¡Todo listo!",
+        text: "Tu cuenta se registró correctamente. Ahora podés iniciar sesión.",
+        icon: "success",
+        confirmButtonText: "Ir a iniciar sesión",
+        confirmButtonColor: "#22d3ee",
+        background: "#0d1423",
+        color: "#ffffff",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+      });
+
+      if (resultado.isConfirmed) {
+        navigate("/login");
+      }
     } catch {
       setError(
-        "No se pudo guardar la cuenta en este navegador. Revisá el almacenamiento disponible.",
+        "No se pudo completar el registro. Revisá el almacenamiento disponible en tu navegador.",
       );
     }
   };
-
-  if (registroExitoso) {
-    return (
-      <main className="flex min-h-[80vh] items-center justify-center bg-[#070b14] px-4 py-12 text-white">
-        <section className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0d1423] p-8 text-center shadow-2xl">
-          <FiCheckCircle className="mx-auto mb-5 text-cyan-300" size={56} />
-
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-cyan-300">
-            CineRolling
-          </p>
-
-          <h1 className="text-2xl font-bold">¡Cuenta creada!</h1>
-
-          <p className="mt-3 text-sm leading-6 text-slate-400">
-            Tu cuenta de prueba se registró correctamente con el plan{" "}
-            <span className="font-semibold text-cyan-300">
-              {planActual.name}
-            </span>
-            . No se realizó ningún cobro real.
-          </p>
-
-          <button
-            type="button"
-            onClick={() => navigate("/login")}
-            className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 py-3 font-bold text-[#07111d] transition hover:bg-cyan-300"
-          >
-            Ir al inicio de sesión
-            <FiArrowRight size={18} />
-          </button>
-        </section>
-      </main>
-    );
-  }
 
   return (
     <main className="relative flex min-h-[80vh] items-center justify-center overflow-hidden bg-[#070b14] px-4 py-12 text-white">
@@ -238,7 +216,7 @@ export const Register = () => {
             <p className="mt-3 text-sm leading-6 text-slate-400">
               {paso === 1
                 ? "Registrate para empezar a disfrutar de nuestro catálogo."
-                : "Seleccioná tu suscripción y completá el pago de prueba."}
+                : "Seleccioná tu suscripción y completá el formulario."}
             </p>
 
             <div className="mx-auto mt-6 flex max-w-xs items-center gap-3">
@@ -433,19 +411,18 @@ export const Register = () => {
                         : "border-white/10 bg-[#080e19] hover:border-white/20"
                     }`}
                   >
-                    <span className="block text-sm font-bold">
-                      {plan.name}
-                    </span>
-
+                    <span className="block text-sm font-bold">{plan.name}</span>
                     <span className="mt-2 block text-lg font-bold text-cyan-300">
                       {plan.price.split("/")[0]}
                     </span>
-
                     <span className="text-xs text-slate-400">por mes</span>
 
                     <ul className="mt-3 space-y-1">
                       {plan.benefits.map((beneficio) => (
-                        <li key={beneficio} className="text-xs text-slate-400">
+                        <li
+                          key={beneficio}
+                          className="text-xs text-slate-400"
+                        >
                           • {beneficio}
                         </li>
                       ))}
@@ -467,12 +444,6 @@ export const Register = () => {
 
                   <p className="font-bold text-cyan-300">{planActual.price}</p>
                 </div>
-
-                <p className="mt-3 text-xs leading-5 text-slate-400">
-                  Simulación académica: no se procesan pagos ni se realizan
-                  cobros reales. Usá únicamente datos de prueba, nunca una
-                  tarjeta real.
-                </p>
               </div>
 
               <div>
@@ -480,7 +451,7 @@ export const Register = () => {
                   htmlFor="titular"
                   className="mb-2 block text-sm font-medium text-slate-200"
                 >
-                  Nombre del titular ficticio
+                  Nombre del titular
                 </label>
 
                 <input
@@ -488,7 +459,7 @@ export const Register = () => {
                   type="text"
                   value={titular}
                   onChange={(e) => setTitular(e.target.value)}
-                  placeholder="TITULAR DE PRUEBA"
+                  placeholder="Nombre del titular"
                   autoComplete="off"
                   required
                   className="w-full rounded-xl border border-white/10 bg-[#080e19] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400"
@@ -500,7 +471,7 @@ export const Register = () => {
                   htmlFor="numeroTarjeta"
                   className="mb-2 block text-sm font-medium text-slate-200"
                 >
-                  Número de tarjeta ficticio
+                  Número de tarjeta
                 </label>
 
                 <input
@@ -513,7 +484,7 @@ export const Register = () => {
                       e.target.value.replace(/\D/g, "").slice(0, 19),
                     )
                   }
-                  placeholder="Solo para la simulación"
+                  placeholder="Ingresá el número de tarjeta"
                   autoComplete="off"
                   required
                   className="w-full rounded-xl border border-white/10 bg-[#080e19] px-4 py-3 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400"
@@ -550,7 +521,7 @@ export const Register = () => {
                     htmlFor="cvv"
                     className="mb-2 block text-sm font-medium text-slate-200"
                   >
-                    Código ficticio
+                    Código de seguridad
                   </label>
 
                   <input
@@ -569,6 +540,11 @@ export const Register = () => {
                 </div>
               </div>
 
+              <p className="text-xs leading-5 text-slate-400">
+                Este formulario es una simulación académica: no procesa pagos.
+                No ingreses datos de una tarjeta real.
+              </p>
+
               {error && (
                 <div
                   role="alert"
@@ -584,7 +560,7 @@ export const Register = () => {
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-cyan-400 py-3 font-bold text-[#07111d] transition hover:bg-cyan-300"
               >
                 <FiShield size={18} />
-                Confirmar registro de prueba
+                Confirmar registro
               </button>
 
               <button
