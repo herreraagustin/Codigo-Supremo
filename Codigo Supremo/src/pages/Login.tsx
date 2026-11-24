@@ -220,8 +220,7 @@ export const Login = ({ onLogin }: LoginProps) => {
                 Acceso protegido
               </p>
               <p className="mt-1 text-xs leading-5 text-slate-400">
-                Ingresá con el correo de tu cuenta registrada o con el correo
-                o nombre de usuario de administrador.
+                Ingresá con el correo de tu cuenta registrada.
               </p>
             </div>
           </div>
