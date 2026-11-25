@@ -114,13 +114,12 @@ export const AdminUsuarios = () => {
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#070b14] px-4 py-6 text-white sm:px-6 sm:py-8 lg:px-10 lg:py-10">
       <div className="mx-auto w-full max-w-7xl min-w-0">
-        <Link
-          to="/admin"
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-blue-500 hover:bg-slate-800 hover:text-white"
-        >
-          <FiArrowLeft />
-          Volver al panel
-        </Link>
+         <Link
+              to="/admin"
+              className="mb-3 inline-flex min-h-10 items-center rounded-lg py-2 pr-3 text-sm text-blue-400 transition hover:text-blue-300 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            >
+              ← Volver al panel
+            </Link>
 
         <div className="mt-6 flex min-w-0 flex-col gap-4 sm:mt-8 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
