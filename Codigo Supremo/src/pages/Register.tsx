@@ -1,4 +1,3 @@
-
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -62,10 +61,7 @@ export const Register = () => {
       return;
     }
 
-    if (
-      !email.trim() ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
-    ) {
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setError("Ingresá un correo electrónico válido.");
       return;
     }
@@ -83,8 +79,7 @@ export const Register = () => {
     const cuentas = obtenerCuentas();
 
     const correoExiste = cuentas.some(
-      (cuenta) =>
-        cuenta.email.toLowerCase() === email.trim().toLowerCase(),
+      (cuenta) => cuenta.email.toLowerCase() === email.trim().toLowerCase(),
     );
 
     if (correoExiste) {
@@ -116,10 +111,26 @@ export const Register = () => {
       return;
     }
 
-    const mes = Number(vencimiento.split("/")[0]);
+    const [mesTexto, anioTexto] = vencimiento.split("/");
+    const mes = Number(mesTexto);
+    const anio = Number(`20${anioTexto}`);
 
     if (mes < 1 || mes > 12) {
       setError("El mes de vencimiento debe estar entre 01 y 12.");
+      return;
+    }
+
+    const fechaActual = new Date();
+    const anioActual = fechaActual.getFullYear();
+    const mesActual = fechaActual.getMonth() + 1;
+
+    if (anio < anioActual || (anio === anioActual && mes < mesActual)) {
+      setError("La tarjeta está vencida. Ingresá una fecha válida.");
+      return;
+    }
+
+    if (anio > 2030) {
+      setError("El año de vencimiento no puede superar el 30 (2030).");
       return;
     }
 
@@ -132,8 +143,7 @@ export const Register = () => {
 
     // El correo es único; el nombre de usuario puede repetirse.
     const cuentaDuplicada = cuentas.some(
-      (cuenta) =>
-        cuenta.email.toLowerCase() === email.trim().toLowerCase(),
+      (cuenta) => cuenta.email.toLowerCase() === email.trim().toLowerCase(),
     );
 
     if (cuentaDuplicada) {
@@ -406,9 +416,7 @@ export const Register = () => {
                         : "border-white/10 bg-[#080e19] hover:border-white/20"
                     }`}
                   >
-                    <span className="block text-sm font-bold">
-                      {plan.name}
-                    </span>
+                    <span className="block text-sm font-bold">{plan.name}</span>
 
                     <span className="mt-2 block text-lg font-bold text-cyan-300">
                       {plan.price.split("/")[0]}
@@ -418,10 +426,7 @@ export const Register = () => {
 
                     <ul className="mt-3 space-y-1">
                       {plan.benefits.map((beneficio) => (
-                        <li
-                          key={beneficio}
-                          className="text-xs text-slate-400"
-                        >
+                        <li key={beneficio} className="text-xs text-slate-400">
                           • {beneficio}
                         </li>
                       ))}
@@ -436,14 +441,10 @@ export const Register = () => {
 
                   <div className="flex-1">
                     <p className="font-semibold">Resumen de tu suscripción</p>
-                    <p className="text-sm text-slate-400">
-                      {planActual.name}
-                    </p>
+                    <p className="text-sm text-slate-400">{planActual.name}</p>
                   </div>
 
-                  <p className="font-bold text-cyan-300">
-                    {planActual.price}
-                  </p>
+                  <p className="font-bold text-cyan-300">{planActual.price}</p>
                 </div>
               </div>
 

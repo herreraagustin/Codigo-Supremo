@@ -98,6 +98,8 @@ export const AdminPeliculas = () => {
   const [idConfirmarBorrado, setIdConfirmarBorrado] = useState<string | null>(
     null,
   );
+  const [peliculaEditando, setPeliculaEditando] =
+    useState<Contenido | null>(null);
 
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -139,18 +141,26 @@ export const AdminPeliculas = () => {
 
         setGenerosDisponibles(unicos);
 
-        const originales = datos.filter(
-          (pelicula) => !cambios.eliminadas.movie.includes(pelicula.id),
-        );
+        const idsEliminados = cambios.eliminadas.movie;
+        const idsAgregados = cambios.agregadas.movie.map((p) => p.id);
+
+        const originales = datos
+          .filter(
+            (pelicula) =>
+              !idsEliminados.includes(pelicula.id) &&
+              !idsAgregados.includes(pelicula.id),
+          )
+          .map((pelicula) => {
+            const editada = cambios.editadas.movie.find(
+              (item) => item.id === pelicula.id,
+            );
+
+            return editada ?? pelicula;
+          });
 
         setPeliculas([
           ...cambios.agregadas.movie.slice().reverse(),
-          ...originales.filter(
-            (original) =>
-              !cambios.agregadas.movie.some(
-                (local) => local.id === original.id,
-              ),
-          ),
+          ...originales,
         ]);
       } catch (error) {
         console.error("Error al cargar las películas:", error);
@@ -263,6 +273,7 @@ export const AdminPeliculas = () => {
   };
 
   const limpiarFormulario = () => {
+    setPeliculaEditando(null);
     setTitulo("");
     setDescripcion("");
     setAnio("");
@@ -281,7 +292,31 @@ export const AdminPeliculas = () => {
     if (inputImagen) inputImagen.value = "";
   };
 
-  const agregarPelicula = (evento: FormEvent<HTMLFormElement>) => {
+  const abrirEdicion = (pelicula: Contenido) => {
+    setPeliculaEditando(pelicula);
+    setTitulo(pelicula.name || pelicula.title || "");
+    setDescripcion(pelicula.description || pelicula.overview || "");
+    setAnio(String(pelicula.year ?? ""));
+    setGeneros(obtenerGenerosDePelicula(pelicula));
+    setNuevoGenero("");
+    setCalificacion(obtenerNota(pelicula));
+
+    const imagenActual = pelicula.poster || "";
+
+    if (imagenActual.startsWith("data:image/")) {
+      setImagenArchivo(imagenActual);
+      setPoster("");
+    } else {
+      setImagenArchivo("");
+      setPoster(imagenActual);
+    }
+
+    setErrorFormulario("");
+    setIntentoGuardar(false);
+    setMostrarModal(true);
+  };
+
+  const guardarPelicula = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
     setIntentoGuardar(true);
     setErrorFormulario("");
@@ -299,9 +334,11 @@ export const AdminPeliculas = () => {
       return;
     }
 
-    // Evita duplicados por título y año.
-    // Ignora diferencias entre mayúsculas, tildes y espacios repetidos.
     const duplicada = peliculas.some((pelicula) => {
+      if (peliculaEditando && pelicula.id === peliculaEditando.id) {
+        return false;
+      }
+
       const tituloExistente = normalizarTitulo(
         pelicula.name || pelicula.title || "",
       );
@@ -319,8 +356,9 @@ export const AdminPeliculas = () => {
       return;
     }
 
-    const nuevaPelicula: Contenido = {
-      id: `local-movie-${Date.now()}`,
+    const datosPelicula: Contenido = {
+      ...(peliculaEditando ?? {}),
+      id: peliculaEditando?.id ?? `local-movie-${Date.now()}`,
       name: nombreLimpio,
       title: nombreLimpio,
       description: sinopsisLimpia,
@@ -336,33 +374,74 @@ export const AdminPeliculas = () => {
     try {
       const cambios = obtenerCambios();
 
-      guardarCambios({
-        ...cambios,
-        agregadas: {
-          ...cambios.agregadas,
-          movie: [nuevaPelicula, ...cambios.agregadas.movie],
-        },
-      });
+      if (peliculaEditando) {
+        const esLocal = cambios.agregadas.movie.some(
+          (pelicula) => pelicula.id === peliculaEditando.id,
+        );
 
-      const cambiosGuardados = obtenerCambios();
+        const nuevosCambios = esLocal
+          ? {
+              ...cambios,
+              agregadas: {
+                ...cambios.agregadas,
+                movie: cambios.agregadas.movie.map((pelicula) =>
+                  pelicula.id === datosPelicula.id
+                    ? datosPelicula
+                    : pelicula,
+                ),
+              },
+            }
+          : {
+              ...cambios,
+              editadas: {
+                ...cambios.editadas,
+                movie: [
+                  ...cambios.editadas.movie.filter(
+                    (pelicula) => pelicula.id !== datosPelicula.id,
+                  ),
+                  datosPelicula,
+                ],
+              },
+            };
 
-      const guardada = cambiosGuardados.agregadas.movie.some(
-        (pelicula) => pelicula.id === nuevaPelicula.id,
-      );
+        guardarCambios(nuevosCambios);
 
-      if (!guardada) {
-        setErrorFormulario("No se pudo confirmar el guardado de la película.");
-        return;
+        setPeliculas((actuales) =>
+          actuales.map((pelicula) =>
+            pelicula.id === datosPelicula.id ? datosPelicula : pelicula,
+          ),
+        );
+      } else {
+        guardarCambios({
+          ...cambios,
+          agregadas: {
+            ...cambios.agregadas,
+            movie: [datosPelicula, ...cambios.agregadas.movie],
+          },
+        });
+
+        const cambiosGuardados = obtenerCambios();
+
+        const guardada = cambiosGuardados.agregadas.movie.some(
+          (pelicula) => pelicula.id === datosPelicula.id,
+        );
+
+        if (!guardada) {
+          setErrorFormulario("No se pudo confirmar el guardado de la película.");
+          return;
+        }
+
+        setPeliculas((actuales) => [datosPelicula, ...actuales]);
       }
 
-      setPeliculas((actuales) => [nuevaPelicula, ...actuales]);
       setBusqueda("");
       limpiarFormulario();
       setMostrarModal(false);
+      setError("");
     } catch (error) {
       console.error("Error al guardar la película:", error);
       setErrorFormulario(
-        "No se pudo guardar la película. Probá con una imagen más pequeña.",
+        "No se pudieron guardar los cambios. Probá con una imagen más pequeña.",
       );
     }
   };
@@ -373,9 +452,14 @@ export const AdminPeliculas = () => {
       const esLocal = cambios.agregadas.movie.some((p) => p.id === id);
 
       const nuevosCambios = {
+        ...cambios,
         agregadas: {
           ...cambios.agregadas,
           movie: cambios.agregadas.movie.filter((p) => p.id !== id),
+        },
+        editadas: {
+          ...cambios.editadas,
+          movie: cambios.editadas.movie.filter((p) => p.id !== id),
         },
         eliminadas: {
           ...cambios.eliminadas,
@@ -436,7 +520,7 @@ export const AdminPeliculas = () => {
           <div>
             <h1 className="text-3xl font-bold">Administrar películas</h1>
             <p className="mt-2 text-gray-400">
-              Agregá, consultá y borrá películas.
+              Agregá, consultá, editá y borrá películas.
             </p>
           </div>
 
@@ -549,6 +633,14 @@ export const AdminPeliculas = () => {
 
                       <button
                         type="button"
+                        onClick={() => abrirEdicion(pelicula)}
+                        className="rounded-lg bg-amber-600 px-4 py-2 font-semibold hover:bg-amber-700"
+                      >
+                        Editar datos
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={() => setIdConfirmarBorrado(pelicula.id)}
                         className="rounded-lg bg-red-600 px-4 py-2 font-semibold hover:bg-red-700"
                       >
@@ -573,7 +665,9 @@ export const AdminPeliculas = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4">
           <div className="my-auto max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-gray-700 bg-[#111827] p-6">
             <div className="mb-6 flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-bold">Agregar película</h2>
+              <h2 className="text-2xl font-bold">
+                {peliculaEditando ? "Editar película" : "Agregar película"}
+              </h2>
 
               <button
                 type="button"
@@ -588,7 +682,7 @@ export const AdminPeliculas = () => {
               </button>
             </div>
 
-            <form onSubmit={agregarPelicula} noValidate className="space-y-4">
+            <form onSubmit={guardarPelicula} noValidate className="space-y-4">
               {errorFormulario && (
                 <p
                   role="alert"
@@ -626,7 +720,10 @@ export const AdminPeliculas = () => {
                 <textarea
                   id="descripcion-pelicula"
                   value={descripcion}
-                  onChange={(e) => setDescripcion(e.target.value)}
+                  onChange={(e) => {
+                    setDescripcion(e.target.value);
+                    setErrorFormulario("");
+                  }}
                   rows={4}
                   className="w-full resize-y rounded-lg border border-gray-700 bg-[#070b14] px-3 py-2 outline-none focus:border-blue-500"
                   placeholder="¿De qué trata la película?"
@@ -868,7 +965,7 @@ export const AdminPeliculas = () => {
                   type="submit"
                   className="flex-1 rounded-lg bg-blue-600 px-4 py-3 font-semibold hover:bg-blue-700"
                 >
-                  Guardar película
+                  {peliculaEditando ? "Guardar cambios" : "Guardar película"}
                 </button>
               </div>
             </form>

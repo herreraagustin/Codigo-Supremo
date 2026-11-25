@@ -12,6 +12,10 @@ export interface CambiosCatalogo {
     movie: string[];
     series: string[];
   };
+  editadas: {
+    movie: Contenido[];
+    series: Contenido[];
+  };
 }
 
 const cambiosIniciales: CambiosCatalogo = {
@@ -20,6 +24,10 @@ const cambiosIniciales: CambiosCatalogo = {
     series: [],
   },
   eliminadas: {
+    movie: [],
+    series: [],
+  },
+  editadas: {
     movie: [],
     series: [],
   },
@@ -44,6 +52,10 @@ export function obtenerCambios(): CambiosCatalogo {
         movie: cambios.eliminadas?.movie ?? [],
         series: cambios.eliminadas?.series ?? [],
       },
+      editadas: {
+        movie: cambios.editadas?.movie ?? [],
+        series: cambios.editadas?.series ?? [],
+      },
     };
   } catch (error) {
     console.error("Error al leer los cambios guardados:", error);
@@ -53,12 +65,8 @@ export function obtenerCambios(): CambiosCatalogo {
 
 export function guardarCambios(cambios: CambiosCatalogo): void {
   try {
-    localStorage.setItem(
-      CLAVE_ALMACENAMIENTO,
-      JSON.stringify(cambios)
-    );
+    localStorage.setItem(CLAVE_ALMACENAMIENTO, JSON.stringify(cambios));
 
-    // Actualiza también la pestaña donde se hizo el cambio.
     window.dispatchEvent(new Event("catalogo-actualizado"));
   } catch (error) {
     console.error("Error al guardar los cambios:", error);
