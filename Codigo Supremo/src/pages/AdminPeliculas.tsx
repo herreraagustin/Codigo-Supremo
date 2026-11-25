@@ -1,15 +1,10 @@
-
-import {
-  useEffect,
-  useState,
-  type ChangeEvent,
-  type FormEvent,
-} from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { CardAdmin } from "../components/CardAdmin";
 import { obtenerCatalogo } from "../services/peliculas";
 import type { Contenido } from "../services/peliculas";
 import { obtenerCambios, guardarCambios } from "../services/almacenamiento";
+
 
 function normalizarTitulo(valor: string): string {
   return valor
@@ -65,9 +60,7 @@ function convertirNota(valor: unknown, escalaPorDefecto: number): number {
   if (!coincidencia) return 0;
 
   const numero = Number(coincidencia[1]);
-  const escala = coincidencia[2]
-    ? Number(coincidencia[2])
-    : escalaPorDefecto;
+  const escala = coincidencia[2] ? Number(coincidencia[2]) : escalaPorDefecto;
 
   if (
     !Number.isFinite(numero) ||
@@ -520,6 +513,12 @@ export const AdminPeliculas = () => {
       <div className="mx-auto w-full max-w-7xl">
         <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
+            <Link
+              to="/admin"
+              className="mb-3 inline-flex min-h-10 items-center rounded-lg py-2 pr-3 text-sm text-blue-400 transition hover:text-blue-300 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            >
+              ← Volver al panel
+            </Link>
             <h1 className="text-2xl font-bold leading-tight sm:text-3xl lg:text-4xl">
               Administrar películas
             </h1>
