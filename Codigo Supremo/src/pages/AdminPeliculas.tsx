@@ -1,5 +1,7 @@
+
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { CardAdmin } from "../components/CardAdmin";
 import { obtenerCatalogo } from "../services/peliculas";
 import type { Contenido } from "../services/peliculas";
 import { obtenerCambios, guardarCambios } from "../services/almacenamiento";
@@ -484,26 +486,6 @@ export const AdminPeliculas = () => {
       .includes(busqueda.toLowerCase()),
   );
 
-  const estrellas = (valor: number) => (
-    <div
-      className="flex items-center gap-1"
-      aria-label={`Calificación: ${valor} de 5`}
-    >
-      {[1, 2, 3, 4, 5].map((estrella) => (
-        <span
-          key={estrella}
-          className={estrella <= valor ? "text-yellow-400" : "text-gray-600"}
-        >
-          ★
-        </span>
-      ))}
-
-      {valor > 0 && (
-        <span className="ml-2 text-sm text-gray-400">{valor}/5</span>
-      )}
-    </div>
-  );
-
   const avisoPendiente = (valido: boolean, mensaje: string) =>
     intentoGuardar && !valido ? (
       <p className="mt-1 text-sm text-amber-400" role="alert">
@@ -558,99 +540,20 @@ export const AdminPeliculas = () => {
         )}
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {peliculasFiltradas.map((pelicula) => {
-            const generosPelicula = obtenerGenerosDePelicula(pelicula);
-            const nombre = pelicula.name || pelicula.title || "Sin título";
-            const nota = obtenerNota(pelicula);
-
-            return (
-              <article
-                key={pelicula.id}
-                className="overflow-hidden rounded-xl border border-gray-800 bg-[#111827]"
-              >
-                {pelicula.poster ? (
-                  <img
-                    src={pelicula.poster}
-                    alt={`Póster de ${nombre}`}
-                    className="h-72 w-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
-                  />
-                ) : (
-                  <div className="flex h-72 items-center justify-center bg-gray-800 text-gray-400">
-                    Sin póster
-                  </div>
-                )}
-
-                <div className="p-4">
-                  <h2 className="mb-2 text-lg font-bold">{nombre}</h2>
-
-                  <p className="mb-3 text-sm text-gray-400">
-                    Año: {pelicula.year || "No disponible"}
-                  </p>
-
-                  {nota > 0 && <div className="mb-3">{estrellas(nota)}</div>}
-
-                  {generosPelicula.length > 0 && (
-                    <p className="mb-4 text-sm text-blue-300">
-                      {generosPelicula.join(" · ")}
-                    </p>
-                  )}
-
-                  {idConfirmarBorrado === pelicula.id ? (
-                    <div className="space-y-3 rounded-lg border border-red-800 bg-red-950/40 p-3">
-                      <p className="text-sm text-red-200">
-                        ¿Seguro que querés borrar esta película?
-                      </p>
-
-                      <button
-                        type="button"
-                        onClick={() => borrarPelicula(pelicula.id)}
-                        className="w-full rounded-lg bg-red-600 px-3 py-2 font-semibold hover:bg-red-700"
-                      >
-                        Sí, borrar película
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setIdConfirmarBorrado(null)}
-                        className="w-full rounded-lg bg-gray-700 px-3 py-2 font-semibold hover:bg-gray-600"
-                      >
-                        No, cancelar
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-2">
-                      <Link
-                        to={`/pelicula/${pelicula.id}`}
-                        state={{ volverA: "/admin/peliculas" }}
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-center font-semibold hover:bg-blue-700"
-                      >
-                        Ver detalles
-                      </Link>
-
-                      <button
-                        type="button"
-                        onClick={() => abrirEdicion(pelicula)}
-                        className="rounded-lg bg-amber-600 px-4 py-2 font-semibold hover:bg-amber-700"
-                      >
-                        Editar datos
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setIdConfirmarBorrado(pelicula.id)}
-                        className="rounded-lg bg-red-600 px-4 py-2 font-semibold hover:bg-red-700"
-                      >
-                        Borrar película
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </article>
-            );
-          })}
+          {peliculasFiltradas.map((pelicula) => (
+            <CardAdmin
+              key={pelicula.id}
+              contenido={pelicula}
+              tipo="movie"
+              nota={obtenerNota(pelicula)}
+              generos={obtenerGenerosDePelicula(pelicula)}
+              confirmarBorrado={idConfirmarBorrado === pelicula.id}
+              onEditar={abrirEdicion}
+              onSolicitarBorrado={setIdConfirmarBorrado}
+              onConfirmarBorrado={() => borrarPelicula(pelicula.id)}
+              onCancelarBorrado={() => setIdConfirmarBorrado(null)}
+            />
+          ))}
         </div>
 
         <div className="mt-8">
