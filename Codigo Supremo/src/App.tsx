@@ -38,7 +38,6 @@ export default function App() {
     );
   });
 
-  // Iniciar sesión
   const handleLogin = (nombreUsuario: string) => {
     const esAdmin = administradores.some(
       (admin) => admin.nombreUsuario === nombreUsuario,
@@ -52,7 +51,6 @@ export default function App() {
     setIsAdmin(esAdmin);
   };
 
-  // Cerrar sesión
   const handleLogout = () => {
     localStorage.removeItem("isLogged");
     localStorage.removeItem("userName");
@@ -60,20 +58,19 @@ export default function App() {
     setUserName("");
     setIsLogged(false);
     setIsAdmin(false);
+    setSearchTerm("");
   };
 
-  // Proteger rutas que requieren iniciar sesión
   const protect = (element: React.ReactElement) =>
     isLogged ? element : <Navigate to="/login" replace />;
 
-  // Proteger rutas exclusivas para administradores
   const protectAdmin = (element: React.ReactElement) => {
     if (!isLogged) {
       return <Navigate to="/login" replace />;
     }
 
     if (!isAdmin) {
-      return <Navigate to="/home" replace />;
+      return <Navigate to="/" replace />;
     }
 
     return element;
@@ -93,49 +90,43 @@ export default function App() {
 
         <div className="flex-1">
           <Routes>
-            {/* Página de bienvenida */}
             <Route
               path="/"
               element={
-                isLogged ? <Navigate to="/home" replace /> : <Bienvenida />
+                isLogged ? <Home searchTerm={searchTerm} /> : <Bienvenida />
               }
             />
 
-            {/* Catálogo de películas y series */}
-            <Route
-              path="/home"
-              element={protect(<Home searchTerm={searchTerm} />)}
-            />
+            <Route path="/home" element={<Navigate to="/" replace />} />
 
-            {/* Todas las películas */}
             <Route
               path="/peliculas"
               element={protect(<Peliculas searchTerm={searchTerm} />)}
             />
 
-            <Route path="/pelicula/:id" element={protect(<DetallePeli />)} />
+            <Route
+              path="/pelicula/:id"
+              element={protect(<DetallePeli />)}
+            />
 
-            {/* Inicio de sesión */}
             <Route
               path="/login"
               element={
                 isLogged ? (
-                  <Navigate to="/home" replace />
+                  <Navigate to="/" replace />
                 ) : (
                   <Login onLogin={handleLogin} />
                 )
               }
             />
 
-            {/* Registro */}
             <Route
               path="/register"
               element={
-                isLogged ? <Navigate to="/home" replace /> : <Register />
+                isLogged ? <Navigate to="/" replace /> : <Register />
               }
             />
 
-            {/* Administración: solo administradores */}
             <Route path="/admin" element={protectAdmin(<Admin />)} />
 
             <Route

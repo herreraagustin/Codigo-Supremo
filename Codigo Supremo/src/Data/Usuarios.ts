@@ -8,21 +8,21 @@ export type Usuario = {
 
 export const administradores: Usuario[] = [
   {
-    nombreUsuario: "LataroCadmin",
-    email: "latarocadmin@cinerolling.com",
-    password: "123456",
+    nombreUsuario: import.meta.env.VITE_ADMIN_1_NAME,
+    email: import.meta.env.VITE_ADMIN_1_EMAIL,
+    password: import.meta.env.VITE_ADMIN_1_PASSWORD,
     rol: "admin",
   },
   {
-    nombreUsuario: "Agustinadmin",
-    email: "agustinadmin@cinerolling.com",
-    password: "123456",
+    nombreUsuario: import.meta.env.VITE_ADMIN_2_NAME,
+    email: import.meta.env.VITE_ADMIN_2_EMAIL,
+    password: import.meta.env.VITE_ADMIN_2_PASSWORD,
     rol: "admin",
   },
   {
-    nombreUsuario: "LautaroLopezadmin",
-    email: "lautaro.lopezadmin@cinerolling.com",
-    password: "123456",
+    nombreUsuario: import.meta.env.VITE_ADMIN_3_NAME,
+    email: import.meta.env.VITE_ADMIN_3_EMAIL,
+    password: import.meta.env.VITE_ADMIN_3_PASSWORD,
     rol: "admin",
   },
 ];

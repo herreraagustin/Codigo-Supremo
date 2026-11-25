@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { obtenerCatalogo } from "../services/peliculas";
 import type { Contenido } from "../services/peliculas";
-import { obtenerCambios } from "../services/almacenamiento";
+import { aplicarCambiosCatalogo } from "../services/almacenamiento";
 import { obtenerGenerosDeContenido } from "../services/Generos";
 import { mapContenido } from "../services/MapContenido";
 import { CardPelicula } from "../components/Card-Pelicula";
@@ -14,18 +14,27 @@ function listarGeneros(lista: Contenido[]): string[] {
   lista.forEach((item) => {
     obtenerGenerosDeContenido(item).forEach((genero) => {
       const clave = genero.toLowerCase();
-      if (!mapa.has(clave)) mapa.set(clave, genero);
+
+      if (!mapa.has(clave)) {
+        mapa.set(clave, genero);
+      }
     });
   });
 
   return Array.from(mapa.values()).sort((a, b) => a.localeCompare(b));
 }
 
-function alternarGenero(genero: string, actual: string | null): string | null {
+function alternarGenero(
+  genero: string,
+  actual: string | null
+): string | null {
   return actual?.toLowerCase() === genero.toLowerCase() ? null : genero;
 }
 
-function filtrarPorGenero(lista: Contenido[], genero: string | null) {
+function filtrarPorGenero(
+  lista: Contenido[],
+  genero: string | null
+): Contenido[] {
   if (!genero) return lista;
 
   return lista.filter((item) =>
@@ -71,35 +80,8 @@ export const Home = ({ searchTerm }: { searchTerm: string }) => {
 
         if (!activa) return;
 
-        const cambios = obtenerCambios();
-
-        const peliculasVisibles = datosPeliculas.filter(
-          (pelicula) => !cambios.eliminadas.movie.includes(pelicula.id)
-        );
-
-        const seriesVisibles = datosSeries.filter(
-          (serie) => !cambios.eliminadas.series.includes(serie.id)
-        );
-
-        setPeliculas([
-          ...cambios.agregadas.movie,
-          ...peliculasVisibles.filter(
-            (original) =>
-              !cambios.agregadas.movie.some(
-                (agregada) => agregada.id === original.id
-              )
-          ),
-        ]);
-
-        setSeries([
-          ...cambios.agregadas.series,
-          ...seriesVisibles.filter(
-            (original) =>
-              !cambios.agregadas.series.some(
-                (agregada) => agregada.id === original.id
-              )
-          ),
-        ]);
+        setPeliculas(aplicarCambiosCatalogo(datosPeliculas, "movie"));
+        setSeries(aplicarCambiosCatalogo(datosSeries, "series"));
       } catch (error) {
         console.error("Error al cargar los catálogos:", error);
       } finally {
@@ -115,6 +97,7 @@ export const Home = ({ searchTerm }: { searchTerm: string }) => {
 
     window.addEventListener("catalogo-actualizado", actualizarCatalogo);
 
+    // Cambios realizados desde otras pestañas.
     function detectarCambiosEntrePestanas(evento: StorageEvent) {
       if (evento.key === "cinerolling_cambios") {
         actualizarCatalogo();
@@ -127,6 +110,7 @@ export const Home = ({ searchTerm }: { searchTerm: string }) => {
 
     return () => {
       activa = false;
+
       window.removeEventListener("catalogo-actualizado", actualizarCatalogo);
       window.removeEventListener("storage", detectarCambiosEntrePestanas);
     };
@@ -154,6 +138,7 @@ export const Home = ({ searchTerm }: { searchTerm: string }) => {
     <section className="mb-12">
       <div className="mb-6 flex items-center justify-between gap-4">
         <h2 className="text-2xl font-bold">{titulo}</h2>
+
         <p className="text-xs text-slate-400">
           Mostrando {visibles.length} de {total.length}
         </p>
@@ -179,6 +164,7 @@ export const Home = ({ searchTerm }: { searchTerm: string }) => {
 
   return (
     <>
+
       {!buscando && <Hero movies={peliculas.map(mapContenido)} />}
 
       <main className="bg-[#070b14] p-6 text-white md:p-10">
@@ -190,9 +176,12 @@ export const Home = ({ searchTerm }: { searchTerm: string }) => {
               titulo="Géneros de películas"
               generos={generosPeliculas}
               activo={generoPelicula}
-              onSelect={(g) => setGeneroPelicula((a) => alternarGenero(g, a))}
+              onSelect={(genero) =>
+                setGeneroPelicula((actual) => alternarGenero(genero, actual))
+              }
               onClear={() => setGeneroPelicula(null)}
             />
+
             {mostrarCatalogo(
               "Películas",
               peliculas,
@@ -204,9 +193,12 @@ export const Home = ({ searchTerm }: { searchTerm: string }) => {
               titulo="Géneros de series"
               generos={generosSeries}
               activo={generoSerie}
-              onSelect={(g) => setGeneroSerie((a) => alternarGenero(g, a))}
+              onSelect={(genero) =>
+                setGeneroSerie((actual) => alternarGenero(genero, actual))
+              }
               onClear={() => setGeneroSerie(null)}
             />
+
             {mostrarCatalogo("Series", series, seriesMostradas, generoSerie)}
           </>
         )}
