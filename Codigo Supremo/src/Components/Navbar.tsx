@@ -10,7 +10,10 @@ type NavbarProps = {
   onLogout: () => void;
 };
 
-const links = [{ to: "/home", label: "Inicio" }];
+const links = [
+  { to: "/home", label: "Inicio" },
+  { to: "/peliculas", label: "Películas" },
+];
 
 export default function Navbar({
   searchTerm,
@@ -30,7 +33,10 @@ export default function Navbar({
 
   const cerrarMenu = () => setMenuOpen(false);
 
-  const mostrarBuscador = isLogged && location.pathname === "/home";
+  // El buscador solo aparece en las páginas que muestran resultados
+  const mostrarBuscador =
+    isLogged &&
+    (location.pathname === "/home" || location.pathname === "/peliculas");
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0b1220]/90 backdrop-blur">
@@ -48,7 +54,7 @@ export default function Navbar({
           CineRolling
         </Link>
 
-        {/* Navegación de escritorio */}
+        {/* Navegación */}
         {isLogged && (
           <div className="ml-4 hidden items-center gap-6 md:flex">
             {links.map((l) => (

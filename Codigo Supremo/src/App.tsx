@@ -1,7 +1,5 @@
-
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
 import Navbar from "./components/Navbar";
 import { Footer } from "./components/Footer";
 import { Home } from "./pages/Home";
@@ -14,6 +12,7 @@ import { AdminSeries } from "./pages/AdminSeries";
 import { AdminUsuarios } from "./pages/AdminUsuarios";
 import { Bienvenida } from "./pages/Bienvenida";
 import { Error404 } from "./pages/Error404";
+import { Peliculas } from "./pages/Peliculas";
 
 import { administradores } from "./Data/Usuarios";
 
@@ -39,7 +38,6 @@ export default function App() {
     );
   });
 
-  // Iniciar sesión
   const handleLogin = (nombreUsuario: string) => {
     const esAdmin = administradores.some(
       (admin) => admin.nombreUsuario === nombreUsuario,
@@ -53,7 +51,6 @@ export default function App() {
     setIsAdmin(esAdmin);
   };
 
-  // Cerrar sesión
   const handleLogout = () => {
     localStorage.removeItem("isLogged");
     localStorage.removeItem("userName");
@@ -64,11 +61,9 @@ export default function App() {
     setSearchTerm("");
   };
 
-  // Proteger rutas que requieren iniciar sesión
   const protect = (element: React.ReactElement) =>
     isLogged ? element : <Navigate to="/login" replace />;
 
-  // Proteger rutas exclusivas para administradores
   const protectAdmin = (element: React.ReactElement) => {
     if (!isLogged) {
       return <Navigate to="/login" replace />;
@@ -95,25 +90,25 @@ export default function App() {
 
         <div className="flex-1">
           <Routes>
-            {/* Inicio: bienvenida sin sesión, catálogo con sesión */}
             <Route
               path="/"
-              element={isLogged ? <Home /> : <Bienvenida />}
+              element={
+                isLogged ? <Home searchTerm={searchTerm} /> : <Bienvenida />
+              }
             />
 
-            {/* Mantener compatibilidad con enlaces anteriores */}
+            <Route path="/home" element={<Navigate to="/" replace />} />
+
             <Route
-              path="/home"
-              element={<Navigate to="/" replace />}
+              path="/peliculas"
+              element={protect(<Peliculas searchTerm={searchTerm} />)}
             />
 
-            {/* Detalles de películas y series */}
             <Route
               path="/pelicula/:id"
               element={protect(<DetallePeli />)}
             />
 
-            {/* Inicio de sesión */}
             <Route
               path="/login"
               element={
@@ -125,7 +120,6 @@ export default function App() {
               }
             />
 
-            {/* Registro */}
             <Route
               path="/register"
               element={
@@ -133,7 +127,6 @@ export default function App() {
               }
             />
 
-            {/* Administración: solo administradores */}
             <Route path="/admin" element={protectAdmin(<Admin />)} />
 
             <Route
@@ -151,7 +144,6 @@ export default function App() {
               element={protectAdmin(<AdminUsuarios />)}
             />
 
-            {/* Página no encontrada */}
             <Route path="*" element={<Error404 />} />
           </Routes>
         </div>
