@@ -1,3 +1,4 @@
+
 import {
   useEffect,
   useState,
@@ -9,6 +10,7 @@ import { Link } from "react-router-dom";
 import { obtenerCatalogo } from "../services/peliculas";
 import type { Contenido } from "../services/peliculas";
 import { obtenerCambios, guardarCambios } from "../services/almacenamiento";
+import { CardAdmin } from "../components/CardAdmin";
 
 function obtenerGenerosDeSerie(serie: Contenido): string[] {
   const resultado: string[] = [];
@@ -144,7 +146,9 @@ export const AdminSeries = () => {
 
         const listaGeneros = catalogo.flatMap(obtenerGenerosDeSerie);
         const unicos = Array.from(
-          new Map(listaGeneros.map((g) => [g.toLocaleLowerCase(), g])).values(),
+          new Map(
+            listaGeneros.map((g) => [g.toLocaleLowerCase(), g]),
+          ).values(),
         ).sort((a, b) => a.localeCompare(b));
 
         setGenerosDisponibles(unicos);
@@ -259,9 +263,7 @@ export const AdminSeries = () => {
     const sinopsis = String(serie.description ?? serie.overview ?? "");
     const notaRating = Number(serie.rating);
     const notaImdb = Number(
-      String(serie.imdbRating ?? "")
-        .replace(",", ".")
-        .split("/")[0],
+      String(serie.imdbRating ?? "").replace(",", ".").split("/")[0],
     );
 
     let nota = notaRating > 0 ? notaRating : notaImdb;
@@ -424,25 +426,6 @@ export const AdminSeries = () => {
       .includes(busqueda.toLowerCase()),
   );
 
-  const estrellas = (valor: number) => (
-    <div
-      className="flex items-center gap-1"
-      aria-label={`Calificación: ${valor} de 5`}
-    >
-      {[1, 2, 3, 4, 5].map((estrella) => (
-        <span
-          key={estrella}
-          className={estrella <= valor ? "text-yellow-400" : "text-gray-600"}
-        >
-          ★
-        </span>
-      ))}
-      {valor > 0 && (
-        <span className="ml-2 text-sm text-gray-400">{valor}/5</span>
-      )}
-    </div>
-  );
-
   const avisoPendiente = (valido: boolean, mensaje: string) =>
     intentoGuardar && !valido ? (
       <p role="alert" className="mt-1 text-sm text-amber-400">
@@ -510,14 +493,11 @@ export const AdminSeries = () => {
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {seriesFiltradas.map((serie) => {
-              const nombre = serie.name ?? serie.title ?? "Sin título";
               const generosSerie = obtenerGenerosDeSerie(serie);
 
               const notaRating = Number(serie.rating);
               const notaImdb = Number(
-                String(serie.imdbRating ?? "")
-                  .replace(",", ".")
-                  .split("/")[0],
+                String(serie.imdbRating ?? "").replace(",", ".").split("/")[0],
               );
 
               const notaOriginal =
@@ -529,102 +509,23 @@ export const AdminSeries = () => {
                 5,
                 Math.max(
                   0,
-                  Math.round(
-                    notaOriginal > 5 ? notaOriginal / 2 : notaOriginal,
-                  ),
+                  Math.round(notaOriginal > 5 ? notaOriginal / 2 : notaOriginal),
                 ),
               );
 
               return (
-                <article
+                <CardAdmin
                   key={serie.id}
-                  className="overflow-hidden rounded-xl border border-gray-800 bg-gray-900"
-                >
-                  {serie.poster ? (
-                    <img
-                      src={serie.poster}
-                      alt={`Póster de ${nombre}`}
-                      className="h-72 w-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <div className="flex h-72 items-center justify-center bg-gray-800 text-gray-500">
-                      Sin póster
-                    </div>
-                  )}
-
-                  <div className="space-y-3 p-4">
-                    <h2 className="text-lg font-bold">{nombre}</h2>
-
-                    {serie.year && (
-                      <p className="text-sm text-gray-400">Año: {serie.year}</p>
-                    )}
-
-                    {nota > 0 && estrellas(nota)}
-
-                    {generosSerie.length > 0 && (
-                      <p className="text-sm text-blue-300">
-                        {generosSerie.join(" · ")}
-                      </p>
-                    )}
-
-                    <p className="line-clamp-3 text-sm text-gray-300">
-                      {serie.description ??
-                        serie.overview ??
-                        "Sin sinopsis disponible."}
-                    </p>
-
-                    <Link
-                      to={`/pelicula/${serie.id}`}
-                      state={{ volverA: "/admin/series" }}
-                      className="block w-full rounded-lg bg-blue-600 px-4 py-3 text-center font-semibold text-white transition hover:bg-blue-700"
-                    >
-                      Ver detalles
-                    </Link>
-
-                    <button
-                      type="button"
-                      onClick={() => abrirEdicion(serie)}
-                      className="w-full rounded-lg bg-amber-500/20 px-3 py-2 text-sm font-semibold text-amber-300 hover:bg-amber-500/30"
-                    >
-                      Editar datos
-                    </button>
-
-                    {idConfirmarBorrado === serie.id ? (
-                      <div className="space-y-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-                        <p className="text-sm text-gray-200">
-                          ¿Seguro que querés borrar esta serie?
-                        </p>
-
-                        <button
-                          type="button"
-                          onClick={() => borrarSerie(serie)}
-                          className="w-full rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold hover:bg-red-700"
-                        >
-                          Sí, borrar serie
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setIdConfirmarBorrado(null)}
-                          className="w-full rounded-lg bg-gray-700 px-3 py-2 text-sm font-semibold hover:bg-gray-600"
-                        >
-                          No, cancelar
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setIdConfirmarBorrado(serie.id)}
-                        className="w-full rounded-lg bg-red-600/20 px-3 py-2 text-sm font-semibold text-red-300 hover:bg-red-600/30"
-                      >
-                        Borrar serie
-                      </button>
-                    )}
-                  </div>
-                </article>
+                  contenido={serie}
+                  tipo="series"
+                  nota={nota}
+                  generos={generosSerie}
+                  confirmarBorrado={idConfirmarBorrado === serie.id}
+                  onEditar={abrirEdicion}
+                  onSolicitarBorrado={setIdConfirmarBorrado}
+                  onConfirmarBorrado={() => borrarSerie(serie)}
+                  onCancelarBorrado={() => setIdConfirmarBorrado(null)}
+                />
               );
             })}
           </div>
