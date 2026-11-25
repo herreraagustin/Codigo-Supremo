@@ -1,4 +1,3 @@
-
 import {
   useEffect,
   useState,
@@ -145,17 +144,13 @@ export const AdminSeries = () => {
 
         const listaGeneros = catalogo.flatMap(obtenerGenerosDeSerie);
         const unicos = Array.from(
-          new Map(
-            listaGeneros.map((g) => [g.toLocaleLowerCase(), g]),
-          ).values(),
+          new Map(listaGeneros.map((g) => [g.toLocaleLowerCase(), g])).values(),
         ).sort((a, b) => a.localeCompare(b));
 
         setGenerosDisponibles(unicos);
 
         const originales = catalogo
-          .filter(
-            (serie) => !cambios.eliminadas.series.includes(serie.id),
-          )
+          .filter((serie) => !cambios.eliminadas.series.includes(serie.id))
           .map((serie) => {
             const editada = cambios.editadas.series.find(
               (item) => item.id === serie.id,
@@ -280,9 +275,7 @@ export const AdminSeries = () => {
     setAnio(String(obtenerAnioDeSerie(serie) || ""));
     setGeneros(obtenerGenerosDeSerie(serie));
     setCalificacion(
-      Number.isFinite(nota)
-        ? Math.min(5, Math.max(0, Math.round(nota)))
-        : 0,
+      Number.isFinite(nota) ? Math.min(5, Math.max(0, Math.round(nota))) : 0,
     );
     setPoster(String(serie.poster ?? serie.backdrop ?? ""));
     setMostrarModal(true);
@@ -356,10 +349,7 @@ export const AdminSeries = () => {
           ];
         }
       } else {
-        cambios.agregadas.series = [
-          datosSerie,
-          ...cambios.agregadas.series,
-        ];
+        cambios.agregadas.series = [datosSerie, ...cambios.agregadas.series];
       }
 
       guardarCambios(cambios);
@@ -369,9 +359,7 @@ export const AdminSeries = () => {
         ? guardadas.agregadas.series.some(
             (serie) => serie.id === datosSerie.id,
           ) ||
-          guardadas.editadas.series.some(
-            (serie) => serie.id === datosSerie.id,
-          )
+          guardadas.editadas.series.some((serie) => serie.id === datosSerie.id)
         : guardadas.agregadas.series.some(
             (serie) => serie.id === datosSerie.id,
           );
@@ -590,6 +578,7 @@ export const AdminSeries = () => {
 
                     <Link
                       to={`/pelicula/${serie.id}`}
+                      state={{ volverA: "/admin/series" }}
                       className="block w-full rounded-lg bg-blue-600 px-4 py-3 text-center font-semibold text-white transition hover:bg-blue-700"
                     >
                       Ver detalles

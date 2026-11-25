@@ -1,4 +1,3 @@
-
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { obtenerCatalogo } from "../services/peliculas";
@@ -59,9 +58,7 @@ function convertirNota(valor: unknown, escalaPorDefecto: number): number {
   if (!coincidencia) return 0;
 
   const numero = Number(coincidencia[1]);
-  const escala = coincidencia[2]
-    ? Number(coincidencia[2])
-    : escalaPorDefecto;
+  const escala = coincidencia[2] ? Number(coincidencia[2]) : escalaPorDefecto;
 
   if (
     !Number.isFinite(numero) ||
@@ -98,8 +95,9 @@ export const AdminPeliculas = () => {
   const [idConfirmarBorrado, setIdConfirmarBorrado] = useState<string | null>(
     null,
   );
-  const [peliculaEditando, setPeliculaEditando] =
-    useState<Contenido | null>(null);
+  const [peliculaEditando, setPeliculaEditando] = useState<Contenido | null>(
+    null,
+  );
 
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -385,9 +383,7 @@ export const AdminPeliculas = () => {
               agregadas: {
                 ...cambios.agregadas,
                 movie: cambios.agregadas.movie.map((pelicula) =>
-                  pelicula.id === datosPelicula.id
-                    ? datosPelicula
-                    : pelicula,
+                  pelicula.id === datosPelicula.id ? datosPelicula : pelicula,
                 ),
               },
             }
@@ -427,7 +423,9 @@ export const AdminPeliculas = () => {
         );
 
         if (!guardada) {
-          setErrorFormulario("No se pudo confirmar el guardado de la película.");
+          setErrorFormulario(
+            "No se pudo confirmar el guardado de la película.",
+          );
           return;
         }
 
@@ -626,6 +624,7 @@ export const AdminPeliculas = () => {
                     <div className="flex flex-col gap-2">
                       <Link
                         to={`/pelicula/${pelicula.id}`}
+                        state={{ volverA: "/admin/peliculas" }}
                         className="rounded-lg bg-blue-600 px-4 py-2 text-center font-semibold hover:bg-blue-700"
                       >
                         Ver detalles
