@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
@@ -14,7 +13,8 @@ import { AdminSeries } from "./pages/AdminSeries";
 import { AdminUsuarios } from "./pages/AdminUsuarios";
 import { Bienvenida } from "./pages/Bienvenida";
 import { Error404 } from "./pages/Error404";
-import Plans from "./pages/Plan";
+
+import { administradores } from "./Data/Usuarios";
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,25 +27,57 @@ export default function App() {
     localStorage.getItem("userName") || "",
   );
 
+  const [isAdmin, setIsAdmin] = useState(() => {
+    const nombreGuardado = localStorage.getItem("userName") || "";
+
+    return (
+      localStorage.getItem("isLogged") === "true" &&
+      administradores.some(
+        (admin) => admin.nombreUsuario === nombreGuardado,
+      )
+    );
+  });
+
+  // Iniciar sesión
   const handleLogin = (nombreUsuario: string) => {
+    const esAdmin = administradores.some(
+      (admin) => admin.nombreUsuario === nombreUsuario,
+    );
+
     localStorage.setItem("isLogged", "true");
     localStorage.setItem("userName", nombreUsuario);
 
     setUserName(nombreUsuario);
     setIsLogged(true);
+    setIsAdmin(esAdmin);
   };
 
+  // Cerrar sesión
   const handleLogout = () => {
     localStorage.removeItem("isLogged");
     localStorage.removeItem("userName");
 
     setUserName("");
     setIsLogged(false);
+    setIsAdmin(false);
   };
 
-  // Rutas protegidas
+  // Proteger rutas que requieren iniciar sesión
   const protect = (element: React.ReactElement) =>
     isLogged ? element : <Navigate to="/login" replace />;
+
+  // Proteger rutas exclusivas para administradores
+  const protectAdmin = (element: React.ReactElement) => {
+    if (!isLogged) {
+      return <Navigate to="/login" replace />;
+    }
+
+    if (!isAdmin) {
+      return <Navigate to="/home" replace />;
+    }
+
+    return element;
+  };
 
   return (
     <BrowserRouter>
@@ -54,6 +86,7 @@ export default function App() {
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           isLogged={isLogged}
+          isAdmin={isAdmin}
           userName={userName}
           onLogout={handleLogout}
         />
@@ -61,15 +94,20 @@ export default function App() {
         <div className="flex-1">
           <Routes>
             {/* Página de bienvenida */}
-            <Route path="/" element={<Bienvenida />} />
+            <Route
+              path="/"
+              element={
+                isLogged ? <Navigate to="/home" replace /> : <Bienvenida />
+              }
+            />
 
-            {/* Inicio: catálogo de películas y series */}
+            {/* Catálogo de películas y series */}
             <Route path="/home" element={protect(<Home />)} />
 
             {/* Detalles de películas y series */}
             <Route path="/pelicula/:id" element={protect(<DetallePeli />)} />
 
-            {/* Cuenta */}
+            {/* Inicio de sesión */}
             <Route
               path="/login"
               element={
@@ -81,6 +119,7 @@ export default function App() {
               }
             />
 
+            {/* Registro */}
             <Route
               path="/register"
               element={
@@ -88,22 +127,22 @@ export default function App() {
               }
             />
 
-            {/* Planes */}
-            <Route path="/planes" element={<Plans />} />
-
-            {/* Administración */}
-            <Route path="/admin" element={protect(<Admin />)} />
+            {/* Administración: solo administradores */}
+            <Route path="/admin" element={protectAdmin(<Admin />)} />
 
             <Route
               path="/admin/peliculas"
-              element={protect(<AdminPeliculas />)}
+              element={protectAdmin(<AdminPeliculas />)}
             />
 
-            <Route path="/admin/series" element={protect(<AdminSeries />)} />
+            <Route
+              path="/admin/series"
+              element={protectAdmin(<AdminSeries />)}
+            />
 
             <Route
               path="/admin/usuarios"
-              element={protect(<AdminUsuarios />)}
+              element={protectAdmin(<AdminUsuarios />)}
             />
 
             {/* Página no encontrada */}
