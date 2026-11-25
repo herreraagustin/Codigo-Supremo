@@ -1,6 +1,7 @@
 
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { CardAdmin } from "../components/CardAdmin";
 import { obtenerCatalogo } from "../services/peliculas";
 import type { Contenido } from "../services/peliculas";
 import { obtenerCambios, guardarCambios } from "../services/almacenamiento";
@@ -59,9 +60,7 @@ function convertirNota(valor: unknown, escalaPorDefecto: number): number {
   if (!coincidencia) return 0;
 
   const numero = Number(coincidencia[1]);
-  const escala = coincidencia[2]
-    ? Number(coincidencia[2])
-    : escalaPorDefecto;
+  const escala = coincidencia[2] ? Number(coincidencia[2]) : escalaPorDefecto;
 
   if (
     !Number.isFinite(numero) ||
@@ -96,6 +95,9 @@ export const AdminPeliculas = () => {
   const [intentoGuardar, setIntentoGuardar] = useState(false);
   const [mostrarModal, setMostrarModal] = useState(false);
   const [idConfirmarBorrado, setIdConfirmarBorrado] = useState<string | null>(
+    null,
+  );
+  const [peliculaEditando, setPeliculaEditando] = useState<Contenido | null>(
     null,
   );
 
@@ -139,18 +141,26 @@ export const AdminPeliculas = () => {
 
         setGenerosDisponibles(unicos);
 
-        const originales = datos.filter(
-          (pelicula) => !cambios.eliminadas.movie.includes(pelicula.id),
-        );
+        const idsEliminados = cambios.eliminadas.movie;
+        const idsAgregados = cambios.agregadas.movie.map((p) => p.id);
+
+        const originales = datos
+          .filter(
+            (pelicula) =>
+              !idsEliminados.includes(pelicula.id) &&
+              !idsAgregados.includes(pelicula.id),
+          )
+          .map((pelicula) => {
+            const editada = cambios.editadas.movie.find(
+              (item) => item.id === pelicula.id,
+            );
+
+            return editada ?? pelicula;
+          });
 
         setPeliculas([
           ...cambios.agregadas.movie.slice().reverse(),
-          ...originales.filter(
-            (original) =>
-              !cambios.agregadas.movie.some(
-                (local) => local.id === original.id,
-              ),
-          ),
+          ...originales,
         ]);
       } catch (error) {
         console.error("Error al cargar las películas:", error);
@@ -263,6 +273,7 @@ export const AdminPeliculas = () => {
   };
 
   const limpiarFormulario = () => {
+    setPeliculaEditando(null);
     setTitulo("");
     setDescripcion("");
     setAnio("");
@@ -281,7 +292,31 @@ export const AdminPeliculas = () => {
     if (inputImagen) inputImagen.value = "";
   };
 
-  const agregarPelicula = (evento: FormEvent<HTMLFormElement>) => {
+  const abrirEdicion = (pelicula: Contenido) => {
+    setPeliculaEditando(pelicula);
+    setTitulo(pelicula.name || pelicula.title || "");
+    setDescripcion(pelicula.description || pelicula.overview || "");
+    setAnio(String(pelicula.year ?? ""));
+    setGeneros(obtenerGenerosDePelicula(pelicula));
+    setNuevoGenero("");
+    setCalificacion(obtenerNota(pelicula));
+
+    const imagenActual = pelicula.poster || "";
+
+    if (imagenActual.startsWith("data:image/")) {
+      setImagenArchivo(imagenActual);
+      setPoster("");
+    } else {
+      setImagenArchivo("");
+      setPoster(imagenActual);
+    }
+
+    setErrorFormulario("");
+    setIntentoGuardar(false);
+    setMostrarModal(true);
+  };
+
+  const guardarPelicula = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
     setIntentoGuardar(true);
     setErrorFormulario("");
@@ -299,9 +334,11 @@ export const AdminPeliculas = () => {
       return;
     }
 
-    // Evita duplicados por título y año.
-    // Ignora diferencias entre mayúsculas, tildes y espacios repetidos.
     const duplicada = peliculas.some((pelicula) => {
+      if (peliculaEditando && pelicula.id === peliculaEditando.id) {
+        return false;
+      }
+
       const tituloExistente = normalizarTitulo(
         pelicula.name || pelicula.title || "",
       );
@@ -319,8 +356,9 @@ export const AdminPeliculas = () => {
       return;
     }
 
-    const nuevaPelicula: Contenido = {
-      id: `local-movie-${Date.now()}`,
+    const datosPelicula: Contenido = {
+      ...(peliculaEditando ?? {}),
+      id: peliculaEditando?.id ?? `local-movie-${Date.now()}`,
       name: nombreLimpio,
       title: nombreLimpio,
       description: sinopsisLimpia,
@@ -336,33 +374,74 @@ export const AdminPeliculas = () => {
     try {
       const cambios = obtenerCambios();
 
-      guardarCambios({
-        ...cambios,
-        agregadas: {
-          ...cambios.agregadas,
-          movie: [nuevaPelicula, ...cambios.agregadas.movie],
-        },
-      });
+      if (peliculaEditando) {
+        const esLocal = cambios.agregadas.movie.some(
+          (pelicula) => pelicula.id === peliculaEditando.id,
+        );
 
-      const cambiosGuardados = obtenerCambios();
+        const nuevosCambios = esLocal
+          ? {
+              ...cambios,
+              agregadas: {
+                ...cambios.agregadas,
+                movie: cambios.agregadas.movie.map((pelicula) =>
+                  pelicula.id === datosPelicula.id ? datosPelicula : pelicula,
+                ),
+              },
+            }
+          : {
+              ...cambios,
+              editadas: {
+                ...cambios.editadas,
+                movie: [
+                  ...cambios.editadas.movie.filter(
+                    (pelicula) => pelicula.id !== datosPelicula.id,
+                  ),
+                  datosPelicula,
+                ],
+              },
+            };
 
-      const guardada = cambiosGuardados.agregadas.movie.some(
-        (pelicula) => pelicula.id === nuevaPelicula.id,
-      );
+        guardarCambios(nuevosCambios);
 
-      if (!guardada) {
-        setErrorFormulario("No se pudo confirmar el guardado de la película.");
-        return;
+        setPeliculas((actuales) =>
+          actuales.map((pelicula) =>
+            pelicula.id === datosPelicula.id ? datosPelicula : pelicula,
+          ),
+        );
+      } else {
+        guardarCambios({
+          ...cambios,
+          agregadas: {
+            ...cambios.agregadas,
+            movie: [datosPelicula, ...cambios.agregadas.movie],
+          },
+        });
+
+        const cambiosGuardados = obtenerCambios();
+
+        const guardada = cambiosGuardados.agregadas.movie.some(
+          (pelicula) => pelicula.id === datosPelicula.id,
+        );
+
+        if (!guardada) {
+          setErrorFormulario(
+            "No se pudo confirmar el guardado de la película.",
+          );
+          return;
+        }
+
+        setPeliculas((actuales) => [datosPelicula, ...actuales]);
       }
 
-      setPeliculas((actuales) => [nuevaPelicula, ...actuales]);
       setBusqueda("");
       limpiarFormulario();
       setMostrarModal(false);
+      setError("");
     } catch (error) {
       console.error("Error al guardar la película:", error);
       setErrorFormulario(
-        "No se pudo guardar la película. Probá con una imagen más pequeña.",
+        "No se pudieron guardar los cambios. Probá con una imagen más pequeña.",
       );
     }
   };
@@ -373,9 +452,14 @@ export const AdminPeliculas = () => {
       const esLocal = cambios.agregadas.movie.some((p) => p.id === id);
 
       const nuevosCambios = {
+        ...cambios,
         agregadas: {
           ...cambios.agregadas,
           movie: cambios.agregadas.movie.filter((p) => p.id !== id),
+        },
+        editadas: {
+          ...cambios.editadas,
+          movie: cambios.editadas.movie.filter((p) => p.id !== id),
         },
         eliminadas: {
           ...cambios.eliminadas,
@@ -402,26 +486,6 @@ export const AdminPeliculas = () => {
       .includes(busqueda.toLowerCase()),
   );
 
-  const estrellas = (valor: number) => (
-    <div
-      className="flex items-center gap-1"
-      aria-label={`Calificación: ${valor} de 5`}
-    >
-      {[1, 2, 3, 4, 5].map((estrella) => (
-        <span
-          key={estrella}
-          className={estrella <= valor ? "text-yellow-400" : "text-gray-600"}
-        >
-          ★
-        </span>
-      ))}
-
-      {valor > 0 && (
-        <span className="ml-2 text-sm text-gray-400">{valor}/5</span>
-      )}
-    </div>
-  );
-
   const avisoPendiente = (valido: boolean, mensaje: string) =>
     intentoGuardar && !valido ? (
       <p className="mt-1 text-sm text-amber-400" role="alert">
@@ -436,7 +500,7 @@ export const AdminPeliculas = () => {
           <div>
             <h1 className="text-3xl font-bold">Administrar películas</h1>
             <p className="mt-2 text-gray-400">
-              Agregá, consultá y borrá películas.
+              Agregá, consultá, editá y borrá películas.
             </p>
           </div>
 
@@ -476,90 +540,20 @@ export const AdminPeliculas = () => {
         )}
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {peliculasFiltradas.map((pelicula) => {
-            const generosPelicula = obtenerGenerosDePelicula(pelicula);
-            const nombre = pelicula.name || pelicula.title || "Sin título";
-            const nota = obtenerNota(pelicula);
-
-            return (
-              <article
-                key={pelicula.id}
-                className="overflow-hidden rounded-xl border border-gray-800 bg-[#111827]"
-              >
-                {pelicula.poster ? (
-                  <img
-                    src={pelicula.poster}
-                    alt={`Póster de ${nombre}`}
-                    className="h-72 w-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
-                  />
-                ) : (
-                  <div className="flex h-72 items-center justify-center bg-gray-800 text-gray-400">
-                    Sin póster
-                  </div>
-                )}
-
-                <div className="p-4">
-                  <h2 className="mb-2 text-lg font-bold">{nombre}</h2>
-
-                  <p className="mb-3 text-sm text-gray-400">
-                    Año: {pelicula.year || "No disponible"}
-                  </p>
-
-                  {nota > 0 && <div className="mb-3">{estrellas(nota)}</div>}
-
-                  {generosPelicula.length > 0 && (
-                    <p className="mb-4 text-sm text-blue-300">
-                      {generosPelicula.join(" · ")}
-                    </p>
-                  )}
-
-                  {idConfirmarBorrado === pelicula.id ? (
-                    <div className="space-y-3 rounded-lg border border-red-800 bg-red-950/40 p-3">
-                      <p className="text-sm text-red-200">
-                        ¿Seguro que querés borrar esta película?
-                      </p>
-
-                      <button
-                        type="button"
-                        onClick={() => borrarPelicula(pelicula.id)}
-                        className="w-full rounded-lg bg-red-600 px-3 py-2 font-semibold hover:bg-red-700"
-                      >
-                        Sí, borrar película
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setIdConfirmarBorrado(null)}
-                        className="w-full rounded-lg bg-gray-700 px-3 py-2 font-semibold hover:bg-gray-600"
-                      >
-                        No, cancelar
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col gap-2">
-                      <Link
-                        to={`/pelicula/${pelicula.id}`}
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-center font-semibold hover:bg-blue-700"
-                      >
-                        Ver detalles
-                      </Link>
-
-                      <button
-                        type="button"
-                        onClick={() => setIdConfirmarBorrado(pelicula.id)}
-                        className="rounded-lg bg-red-600 px-4 py-2 font-semibold hover:bg-red-700"
-                      >
-                        Borrar película
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </article>
-            );
-          })}
+          {peliculasFiltradas.map((pelicula) => (
+            <CardAdmin
+              key={pelicula.id}
+              contenido={pelicula}
+              tipo="movie"
+              nota={obtenerNota(pelicula)}
+              generos={obtenerGenerosDePelicula(pelicula)}
+              confirmarBorrado={idConfirmarBorrado === pelicula.id}
+              onEditar={abrirEdicion}
+              onSolicitarBorrado={setIdConfirmarBorrado}
+              onConfirmarBorrado={() => borrarPelicula(pelicula.id)}
+              onCancelarBorrado={() => setIdConfirmarBorrado(null)}
+            />
+          ))}
         </div>
 
         <div className="mt-8">
@@ -573,7 +567,9 @@ export const AdminPeliculas = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4">
           <div className="my-auto max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-gray-700 bg-[#111827] p-6">
             <div className="mb-6 flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-bold">Agregar película</h2>
+              <h2 className="text-2xl font-bold">
+                {peliculaEditando ? "Editar película" : "Agregar película"}
+              </h2>
 
               <button
                 type="button"
@@ -588,7 +584,7 @@ export const AdminPeliculas = () => {
               </button>
             </div>
 
-            <form onSubmit={agregarPelicula} noValidate className="space-y-4">
+            <form onSubmit={guardarPelicula} noValidate className="space-y-4">
               {errorFormulario && (
                 <p
                   role="alert"
@@ -626,7 +622,10 @@ export const AdminPeliculas = () => {
                 <textarea
                   id="descripcion-pelicula"
                   value={descripcion}
-                  onChange={(e) => setDescripcion(e.target.value)}
+                  onChange={(e) => {
+                    setDescripcion(e.target.value);
+                    setErrorFormulario("");
+                  }}
                   rows={4}
                   className="w-full resize-y rounded-lg border border-gray-700 bg-[#070b14] px-3 py-2 outline-none focus:border-blue-500"
                   placeholder="¿De qué trata la película?"
@@ -868,7 +867,7 @@ export const AdminPeliculas = () => {
                   type="submit"
                   className="flex-1 rounded-lg bg-blue-600 px-4 py-3 font-semibold hover:bg-blue-700"
                 >
-                  Guardar película
+                  {peliculaEditando ? "Guardar cambios" : "Guardar película"}
                 </button>
               </div>
             </form>

@@ -1,11 +1,18 @@
+
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { obtenerCatalogo } from "../services/peliculas";
 import type { Contenido } from "../services/peliculas";
 import { obtenerCambios } from "../services/almacenamiento";
 
 export const DetallePeli = () => {
   const { id } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const volverA = (
+    location.state as { volverA?: string } | null
+  )?.volverA;
 
   const [contenido, setContenido] = useState<Contenido | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -16,12 +23,13 @@ export const DetallePeli = () => {
       setContenido(null);
 
       try {
-        // Primero buscamos el contenido creado desde el administrador.
         const cambios = obtenerCambios();
 
         const contenidoLocal = [
           ...cambios.agregadas.movie,
           ...cambios.agregadas.series,
+          ...cambios.editadas.movie,
+          ...cambios.editadas.series,
         ].find((item) => item.id === id);
 
         if (contenidoLocal) {
@@ -29,7 +37,6 @@ export const DetallePeli = () => {
           return;
         }
 
-        // Si no es local, lo buscamos en la API.
         const [peliculas, series] = await Promise.all([
           obtenerCatalogo("movie"),
           obtenerCatalogo("series"),
@@ -51,6 +58,14 @@ export const DetallePeli = () => {
     void cargarDetalles();
   }, [id]);
 
+  const volver = () => {
+    if (volverA) {
+      navigate(volverA);
+    } else {
+      navigate("/");
+    }
+  };
+
   if (cargando) {
     return (
       <main className="min-h-screen bg-[#070b14] p-6 text-white">
@@ -66,9 +81,13 @@ export const DetallePeli = () => {
           No se encontró el contenido
         </h1>
 
-        <Link to="/" className="text-blue-400 hover:underline">
-          Volver al catálogo
-        </Link>
+        <button
+          type="button"
+          onClick={volver}
+          className="text-blue-400 hover:underline"
+        >
+          Volver
+        </button>
       </main>
     );
   }
@@ -96,12 +115,13 @@ export const DetallePeli = () => {
   return (
     <main className="min-h-screen bg-[#070b14] px-4 py-8 text-white md:p-10">
       <div className="mx-auto max-w-5xl">
-        <Link
-          to="/"
+        <button
+          type="button"
+          onClick={volver}
           className="mb-8 inline-block text-blue-400 hover:underline"
         >
           ← Volver al catálogo
-        </Link>
+        </button>
 
         <div className="grid gap-8 md:grid-cols-[280px_1fr]">
           <div>

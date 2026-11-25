@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
@@ -60,6 +61,7 @@ export default function App() {
     setUserName("");
     setIsLogged(false);
     setIsAdmin(false);
+    setSearchTerm("");
   };
 
   // Proteger rutas que requieren iniciar sesión
@@ -73,7 +75,7 @@ export default function App() {
     }
 
     if (!isAdmin) {
-      return <Navigate to="/home" replace />;
+      return <Navigate to="/" replace />;
     }
 
     return element;
@@ -93,26 +95,30 @@ export default function App() {
 
         <div className="flex-1">
           <Routes>
-            {/* Página de bienvenida */}
+            {/* Inicio: bienvenida sin sesión, catálogo con sesión */}
             <Route
               path="/"
-              element={
-                isLogged ? <Navigate to="/home" replace /> : <Bienvenida />
-              }
+              element={isLogged ? <Home /> : <Bienvenida />}
             />
 
-            {/* Catálogo de películas y series */}
-            <Route path="/home" element={protect(<Home />)} />
+            {/* Mantener compatibilidad con enlaces anteriores */}
+            <Route
+              path="/home"
+              element={<Navigate to="/" replace />}
+            />
 
             {/* Detalles de películas y series */}
-            <Route path="/pelicula/:id" element={protect(<DetallePeli />)} />
+            <Route
+              path="/pelicula/:id"
+              element={protect(<DetallePeli />)}
+            />
 
             {/* Inicio de sesión */}
             <Route
               path="/login"
               element={
                 isLogged ? (
-                  <Navigate to="/home" replace />
+                  <Navigate to="/" replace />
                 ) : (
                   <Login onLogin={handleLogin} />
                 )
@@ -123,7 +129,7 @@ export default function App() {
             <Route
               path="/register"
               element={
-                isLogged ? <Navigate to="/home" replace /> : <Register />
+                isLogged ? <Navigate to="/" replace /> : <Register />
               }
             />
 

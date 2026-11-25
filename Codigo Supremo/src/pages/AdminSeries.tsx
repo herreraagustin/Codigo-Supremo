@@ -1,3 +1,4 @@
+
 import {
   useEffect,
   useState,
@@ -9,6 +10,7 @@ import { Link } from "react-router-dom";
 import { obtenerCatalogo } from "../services/peliculas";
 import type { Contenido } from "../services/peliculas";
 import { obtenerCambios, guardarCambios } from "../services/almacenamiento";
+import { CardAdmin } from "../components/CardAdmin";
 
 function obtenerGenerosDeSerie(serie: Contenido): string[] {
   const resultado: string[] = [];
@@ -70,7 +72,9 @@ function obtenerAnioDeSerie(serie: Contenido): number {
     datos.releaseDate ??
     "";
 
-  const coincidencia = String(valor).match(/\b(18\d{2}|19\d{2}|20\d{2}|2100)\b/);
+  const coincidencia = String(valor).match(
+    /\b(18\d{2}|19\d{2}|20\d{2}|2100)\b/,
+  );
 
   return coincidencia ? Number(coincidencia[0]) : 0;
 }
@@ -104,6 +108,7 @@ export const AdminSeries = () => {
   const [idConfirmarBorrado, setIdConfirmarBorrado] = useState<string | null>(
     null,
   );
+  const [serieEditando, setSerieEditando] = useState<Contenido | null>(null);
 
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -141,24 +146,32 @@ export const AdminSeries = () => {
 
         const listaGeneros = catalogo.flatMap(obtenerGenerosDeSerie);
         const unicos = Array.from(
-          new Map(listaGeneros.map((g) => [g.toLocaleLowerCase(), g])).values(),
+          new Map(
+            listaGeneros.map((g) => [g.toLocaleLowerCase(), g]),
+          ).values(),
         ).sort((a, b) => a.localeCompare(b));
 
         setGenerosDisponibles(unicos);
 
-        const originales = catalogo.filter(
-          (serie) => !cambios.eliminadas.series.includes(serie.id),
-        );
+        const originales = catalogo
+          .filter((serie) => !cambios.eliminadas.series.includes(serie.id))
+          .map((serie) => {
+            const editada = cambios.editadas.series.find(
+              (item) => item.id === serie.id,
+            );
 
-        setSeries([
-          ...cambios.agregadas.series.slice().reverse(),
-          ...originales.filter(
-            (original) =>
-              !cambios.agregadas.series.some(
-                (local) => local.id === original.id,
-              ),
-          ),
-        ]);
+            return editada ?? serie;
+          });
+
+        const idsOriginales = new Set(originales.map((serie) => serie.id));
+
+        const agregadas = cambios.agregadas.series
+          .filter((serie) => !cambios.eliminadas.series.includes(serie.id))
+          .filter((serie) => !idsOriginales.has(serie.id))
+          .slice()
+          .reverse();
+
+        setSeries([...agregadas, ...originales]);
       } catch (error) {
         console.error("Error al cargar las series:", error);
         setError("No se pudieron cargar las series ni sus géneros.");
@@ -240,11 +253,37 @@ export const AdminSeries = () => {
     setErrorImagen("");
     setImagenUrlValida(false);
     setIntentoGuardar(false);
+    setSerieEditando(null);
 
     if (archivoRef.current) archivoRef.current.value = "";
   };
 
-  const agregarSerie = (evento: FormEvent<HTMLFormElement>) => {
+  const abrirEdicion = (serie: Contenido) => {
+    const nombre = String(serie.name ?? serie.title ?? "");
+    const sinopsis = String(serie.description ?? serie.overview ?? "");
+    const notaRating = Number(serie.rating);
+    const notaImdb = Number(
+      String(serie.imdbRating ?? "").replace(",", ".").split("/")[0],
+    );
+
+    let nota = notaRating > 0 ? notaRating : notaImdb;
+
+    if (nota > 5) nota = nota / 2;
+
+    limpiarFormulario();
+    setSerieEditando(serie);
+    setTitulo(nombre);
+    setDescripcion(sinopsis);
+    setAnio(String(obtenerAnioDeSerie(serie) || ""));
+    setGeneros(obtenerGenerosDeSerie(serie));
+    setCalificacion(
+      Number.isFinite(nota) ? Math.min(5, Math.max(0, Math.round(nota))) : 0,
+    );
+    setPoster(String(serie.poster ?? serie.backdrop ?? ""));
+    setMostrarModal(true);
+  };
+
+  const guardarSerie = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
     setIntentoGuardar(true);
     setErrorFormulario("");
@@ -266,14 +305,10 @@ export const AdminSeries = () => {
     try {
       const cambios = obtenerCambios();
 
-      // Revisar el catálogo que está en pantalla y las series guardadas.
-      const catalogoCompleto = [
-        ...series,
-        ...cambios.agregadas.series,
-      ];
-
-      const duplicada = catalogoCompleto.some((serie) =>
-        esLaMismaSerie(serie, nombreLimpio, anioNuevo),
+      const duplicada = series.some(
+        (serie) =>
+          serie.id !== serieEditando?.id &&
+          esLaMismaSerie(serie, nombreLimpio, anioNuevo),
       );
 
       if (duplicada) {
@@ -283,8 +318,9 @@ export const AdminSeries = () => {
         return;
       }
 
-      const nuevaSerie: Contenido = {
-        id: `local-series-${Date.now()}`,
+      const datosSerie: Contenido = {
+        ...(serieEditando ?? {}),
+        id: serieEditando?.id ?? `local-series-${Date.now()}`,
         name: nombreLimpio,
         title: nombreLimpio,
         description: sinopsisLimpia,
@@ -297,18 +333,38 @@ export const AdminSeries = () => {
         type: "series",
       };
 
-      cambios.agregadas.series = [
-        nuevaSerie,
-        ...cambios.agregadas.series,
-      ];
+      if (serieEditando) {
+        const esLocal = cambios.agregadas.series.some(
+          (serie) => serie.id === serieEditando.id,
+        );
+
+        if (esLocal) {
+          cambios.agregadas.series = cambios.agregadas.series.map((serie) =>
+            serie.id === serieEditando.id ? datosSerie : serie,
+          );
+        } else {
+          cambios.editadas.series = [
+            ...cambios.editadas.series.filter(
+              (serie) => serie.id !== serieEditando.id,
+            ),
+            datosSerie,
+          ];
+        }
+      } else {
+        cambios.agregadas.series = [datosSerie, ...cambios.agregadas.series];
+      }
 
       guardarCambios(cambios);
 
       const guardadas = obtenerCambios();
-
-      const guardada = guardadas.agregadas.series.some(
-        (serie) => serie.id === nuevaSerie.id,
-      );
+      const guardada = serieEditando
+        ? guardadas.agregadas.series.some(
+            (serie) => serie.id === datosSerie.id,
+          ) ||
+          guardadas.editadas.series.some((serie) => serie.id === datosSerie.id)
+        : guardadas.agregadas.series.some(
+            (serie) => serie.id === datosSerie.id,
+          );
 
       if (!guardada) {
         setErrorFormulario(
@@ -317,10 +373,18 @@ export const AdminSeries = () => {
         return;
       }
 
-      setSeries((actuales) => [nuevaSerie, ...actuales]);
-      setBusqueda("");
+      setSeries((actuales) =>
+        serieEditando
+          ? actuales.map((serie) =>
+              serie.id === datosSerie.id ? datosSerie : serie,
+            )
+          : [datosSerie, ...actuales],
+      );
+
       limpiarFormulario();
+      setBusqueda("");
       setMostrarModal(false);
+      setError("");
     } catch (error) {
       console.error("Error al guardar la serie:", error);
       setErrorFormulario(
@@ -342,6 +406,10 @@ export const AdminSeries = () => {
         cambios.eliminadas.series = [...cambios.eliminadas.series, serie.id];
       }
 
+      cambios.editadas.series = cambios.editadas.series.filter(
+        (s) => s.id !== serie.id,
+      );
+
       guardarCambios(cambios);
       setSeries((actuales) => actuales.filter((s) => s.id !== serie.id));
       setIdConfirmarBorrado(null);
@@ -356,25 +424,6 @@ export const AdminSeries = () => {
     (serie.name ?? serie.title ?? "")
       .toLowerCase()
       .includes(busqueda.toLowerCase()),
-  );
-
-  const estrellas = (valor: number) => (
-    <div
-      className="flex items-center gap-1"
-      aria-label={`Calificación: ${valor} de 5`}
-    >
-      {[1, 2, 3, 4, 5].map((estrella) => (
-        <span
-          key={estrella}
-          className={estrella <= valor ? "text-yellow-400" : "text-gray-600"}
-        >
-          ★
-        </span>
-      ))}
-      {valor > 0 && (
-        <span className="ml-2 text-sm text-gray-400">{valor}/5</span>
-      )}
-    </div>
   );
 
   const avisoPendiente = (valido: boolean, mensaje: string) =>
@@ -397,7 +446,7 @@ export const AdminSeries = () => {
             </Link>
             <h1 className="text-3xl font-bold">Administrar series</h1>
             <p className="mt-2 text-gray-400">
-              Agregá, buscá y eliminá series del catálogo.
+              Agregá, buscá, editá y eliminá series del catálogo.
             </p>
           </div>
 
@@ -444,14 +493,11 @@ export const AdminSeries = () => {
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {seriesFiltradas.map((serie) => {
-              const nombre = serie.name ?? serie.title ?? "Sin título";
               const generosSerie = obtenerGenerosDeSerie(serie);
 
               const notaRating = Number(serie.rating);
               const notaImdb = Number(
-                String(serie.imdbRating ?? "")
-                  .replace(",", ".")
-                  .split("/")[0],
+                String(serie.imdbRating ?? "").replace(",", ".").split("/")[0],
               );
 
               const notaOriginal =
@@ -463,93 +509,23 @@ export const AdminSeries = () => {
                 5,
                 Math.max(
                   0,
-                  Math.round(
-                    notaOriginal > 5 ? notaOriginal / 2 : notaOriginal,
-                  ),
+                  Math.round(notaOriginal > 5 ? notaOriginal / 2 : notaOriginal),
                 ),
               );
 
               return (
-                <article
+                <CardAdmin
                   key={serie.id}
-                  className="overflow-hidden rounded-xl border border-gray-800 bg-gray-900"
-                >
-                  {serie.poster ? (
-                    <img
-                      src={serie.poster}
-                      alt={`Póster de ${nombre}`}
-                      className="h-72 w-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <div className="flex h-72 items-center justify-center bg-gray-800 text-gray-500">
-                      Sin póster
-                    </div>
-                  )}
-
-                  <div className="space-y-3 p-4">
-                    <h2 className="text-lg font-bold">{nombre}</h2>
-
-                    {serie.year && (
-                      <p className="text-sm text-gray-400">Año: {serie.year}</p>
-                    )}
-
-                    {nota > 0 && estrellas(nota)}
-
-                    {generosSerie.length > 0 && (
-                      <p className="text-sm text-blue-300">
-                        {generosSerie.join(" · ")}
-                      </p>
-                    )}
-
-                    <p className="line-clamp-3 text-sm text-gray-300">
-                      {serie.description ??
-                        serie.overview ??
-                        "Sin sinopsis disponible."}
-                    </p>
-
-                    <Link
-                      to={`/pelicula/${serie.id}`}
-                      className="block w-full rounded-lg bg-blue-600 px-4 py-3 text-center font-semibold text-white transition hover:bg-blue-700"
-                    >
-                      Ver detalles
-                    </Link>
-
-                    {idConfirmarBorrado === serie.id ? (
-                      <div className="space-y-2 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-                        <p className="text-sm text-gray-200">
-                          ¿Seguro que querés borrar esta serie?
-                        </p>
-
-                        <button
-                          type="button"
-                          onClick={() => borrarSerie(serie)}
-                          className="w-full rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold hover:bg-red-700"
-                        >
-                          Sí, borrar serie
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setIdConfirmarBorrado(null)}
-                          className="w-full rounded-lg bg-gray-700 px-3 py-2 text-sm font-semibold hover:bg-gray-600"
-                        >
-                          No, cancelar
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setIdConfirmarBorrado(serie.id)}
-                        className="w-full rounded-lg bg-red-600/20 px-3 py-2 text-sm font-semibold text-red-300 hover:bg-red-600/30"
-                      >
-                        Borrar serie
-                      </button>
-                    )}
-                  </div>
-                </article>
+                  contenido={serie}
+                  tipo="series"
+                  nota={nota}
+                  generos={generosSerie}
+                  confirmarBorrado={idConfirmarBorrado === serie.id}
+                  onEditar={abrirEdicion}
+                  onSolicitarBorrado={setIdConfirmarBorrado}
+                  onConfirmarBorrado={() => borrarSerie(serie)}
+                  onCancelarBorrado={() => setIdConfirmarBorrado(null)}
+                />
               );
             })}
           </div>
@@ -566,7 +542,7 @@ export const AdminSeries = () => {
           >
             <div className="mb-6 flex items-center justify-between gap-4">
               <h2 id="titulo-modal-serie" className="text-2xl font-bold">
-                Agregar serie
+                {serieEditando ? "Editar serie" : "Agregar serie"}
               </h2>
 
               <button
@@ -582,7 +558,7 @@ export const AdminSeries = () => {
               </button>
             </div>
 
-            <form onSubmit={agregarSerie} noValidate className="space-y-5">
+            <form onSubmit={guardarSerie} noValidate className="space-y-5">
               {errorFormulario && (
                 <p
                   role="alert"
@@ -881,7 +857,7 @@ export const AdminSeries = () => {
                   type="submit"
                   className="flex-1 rounded-lg bg-blue-600 px-4 py-3 font-semibold hover:bg-blue-700"
                 >
-                  Guardar serie
+                  {serieEditando ? "Guardar cambios" : "Guardar serie"}
                 </button>
               </div>
             </form>
