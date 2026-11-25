@@ -1,11 +1,10 @@
-
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import {
   FiArrowLeft,
   FiFilm,
   FiAlertCircle,
-  FiUser,
+  FiMail,
   FiLock,
   FiEye,
   FiEyeOff,
@@ -20,8 +19,16 @@ type LoginProps = {
   onLogin: (nombreUsuario: string) => void;
 };
 
+type CuentaRegistrada = {
+  nombreUsuario: string;
+  email: string;
+  password: string;
+  rol: "user";
+  plan: string;
+};
+
 export const Login = ({ onLogin }: LoginProps) => {
-  const [nombreUsuario, setNombreUsuario] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [error, setError] = useState("");
@@ -30,19 +37,47 @@ export const Login = ({ onLogin }: LoginProps) => {
     e.preventDefault();
     setError("");
 
-    const usuarioEncontrado = administradores.find(
+    const emailIngresado = email.trim().toLowerCase();
+
+    const administradorEncontrado = administradores.find(
       (usuario) =>
-        usuario.nombreUsuario === nombreUsuario.trim() &&
+        (usuario.email.toLowerCase() === emailIngresado ||
+          usuario.nombreUsuario.toLowerCase() === emailIngresado) &&
         usuario.password === password,
     );
 
-    if (!usuarioEncontrado) {
-      setError("El nombre de usuario o la contraseña son incorrectos.");
+    if (administradorEncontrado) {
+      onLogin(administradorEncontrado.nombreUsuario);
       return;
     }
 
-    // Enviar el nombre del usuario a App.tsx
-    onLogin(usuarioEncontrado.nombreUsuario);
+    let cuentasRegistradas: CuentaRegistrada[] = [];
+
+    try {
+      const datosGuardados = localStorage.getItem("cuentas");
+      cuentasRegistradas = datosGuardados
+        ? (JSON.parse(datosGuardados) as CuentaRegistrada[])
+        : [];
+    } catch {
+      setError(
+        "No se pudieron leer las cuentas guardadas. Intentá nuevamente.",
+      );
+      return;
+    }
+
+    const cuentaEncontrada = cuentasRegistradas.find(
+      (cuenta) =>
+        cuenta.email.toLowerCase() === emailIngresado &&
+        cuenta.password === password &&
+        cuenta.rol === "user",
+    );
+
+    if (!cuentaEncontrada) {
+      setError("El correo electrónico o la contraseña son incorrectos.");
+      return;
+    }
+
+    onLogin(cuentaEncontrada.nombreUsuario);
   };
 
   return (
@@ -83,27 +118,27 @@ export const Login = ({ onLogin }: LoginProps) => {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label
-                htmlFor="nombreUsuario"
+                htmlFor="email"
                 className="mb-2 block text-sm font-medium text-slate-200"
               >
-                Nombre de usuario
+                Correo electrónico o usuario administrador
               </label>
 
               <div className="relative">
-                <FiUser
+                <FiMail
                   size={18}
                   className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500"
                 />
 
                 <input
-                  id="nombreUsuario"
+                  id="email"
                   type="text"
-                  value={nombreUsuario}
+                  value={email}
                   onChange={(e) => {
-                    setNombreUsuario(e.target.value);
+                    setEmail(e.target.value);
                     setError("");
                   }}
-                  placeholder="Ingresá tu usuario"
+                  placeholder="tucorreo@ejemplo.com"
                   autoComplete="username"
                   required
                   className="w-full rounded-xl border border-white/10 bg-[#080e19] py-3 pl-11 pr-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/10"
@@ -185,8 +220,7 @@ export const Login = ({ onLogin }: LoginProps) => {
                 Acceso protegido
               </p>
               <p className="mt-1 text-xs leading-5 text-slate-400">
-                Por ahora, el inicio de sesión está habilitado para los
-                administradores configurados en el proyecto.
+                Ingresá con el correo de tu cuenta registrada.
               </p>
             </div>
           </div>

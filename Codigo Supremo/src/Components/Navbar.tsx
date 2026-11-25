@@ -5,6 +5,7 @@ type NavbarProps = {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   isLogged: boolean;
+  isAdmin: boolean;
   userName: string;
   onLogout: () => void;
 };
@@ -12,13 +13,13 @@ type NavbarProps = {
 const links = [
   { to: "/home", label: "Inicio" },
   { to: "/peliculas", label: "Películas" },
-  { to: "/planes", label: "Planes" },
 ];
 
 export default function Navbar({
   searchTerm,
   onSearchChange,
   isLogged,
+  isAdmin,
   userName,
   onLogout,
 }: NavbarProps) {
@@ -32,6 +33,7 @@ export default function Navbar({
 
   const cerrarMenu = () => setMenuOpen(false);
 
+  // El buscador solo aparece en las páginas que muestran resultados
   const mostrarBuscador =
     isLogged &&
     (location.pathname === "/home" || location.pathname === "/peliculas");
@@ -52,6 +54,7 @@ export default function Navbar({
           CineRolling
         </Link>
 
+        {/* Navegación */}
         {isLogged && (
           <div className="ml-4 hidden items-center gap-6 md:flex">
             {links.map((l) => (
@@ -59,9 +62,16 @@ export default function Navbar({
                 {l.label}
               </NavLink>
             ))}
+
+            {isAdmin && (
+              <NavLink to="/admin" className={linkClass}>
+                Admin
+              </NavLink>
+            )}
           </div>
         )}
 
+        {/* Buscador */}
         {mostrarBuscador && (
           <div className="mx-auto hidden w-full max-w-md md:block">
             <label className="relative block">
@@ -93,6 +103,7 @@ export default function Navbar({
           </div>
         )}
 
+        {/* Acciones de escritorio */}
         <div className="ml-auto hidden items-center gap-3 md:flex">
           {isLogged ? (
             <>
@@ -139,6 +150,7 @@ export default function Navbar({
           )}
         </div>
 
+        {/* Botón hamburguesa */}
         <button
           type="button"
           className="ml-auto rounded-md p-2 text-slate-300 hover:text-white md:hidden"
@@ -163,10 +175,12 @@ export default function Navbar({
         </button>
       </nav>
 
+      {/* Menú móvil */}
       {menuOpen && (
         <div className="space-y-4 border-t border-white/5 px-4 py-4 md:hidden">
           {isLogged ? (
             <>
+              {/* Usuario */}
               <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
                 <div
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 font-bold text-white"
@@ -206,6 +220,16 @@ export default function Navbar({
                     {l.label}
                   </NavLink>
                 ))}
+
+                {isAdmin && (
+                  <NavLink
+                    to="/admin"
+                    className={linkClass}
+                    onClick={cerrarMenu}
+                  >
+                    Admin
+                  </NavLink>
+                )}
               </div>
 
               <button
