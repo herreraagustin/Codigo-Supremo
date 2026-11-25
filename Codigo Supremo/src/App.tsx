@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
 import Navbar from "./components/Navbar";
 import { Footer } from "./components/Footer";
 import { Home } from "./pages/Home";
@@ -11,27 +10,38 @@ import { Admin } from "./pages/Admin";
 import { AdminPeliculas } from "./pages/AdminPeliculas";
 import { AdminSeries } from "./pages/AdminSeries";
 import { AdminUsuarios } from "./pages/AdminUsuarios";
+import { Bienvenida } from "./pages/Bienvenida";
 import { Error404 } from "./pages/Error404";
 import Plans from "./pages/Plan";
 import { Peliculas } from "./pages/Peliculas";
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
+
   const [isLogged, setIsLogged] = useState(
     localStorage.getItem("isLogged") === "true",
   );
 
-  const handleLogin = () => {
+  const [userName, setUserName] = useState(
+    localStorage.getItem("userName") || "",
+  );
+
+  const handleLogin = (nombreUsuario: string) => {
     localStorage.setItem("isLogged", "true");
+    localStorage.setItem("userName", nombreUsuario);
+
+    setUserName(nombreUsuario);
     setIsLogged(true);
   };
 
   const handleLogout = () => {
     localStorage.removeItem("isLogged");
+    localStorage.removeItem("userName");
+
+    setUserName("");
     setIsLogged(false);
   };
 
-  // Rutas protegidas
   const protect = (element: React.ReactElement) =>
     isLogged ? element : <Navigate to="/login" replace />;
 
@@ -42,18 +52,45 @@ export default function App() {
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           isLogged={isLogged}
+          userName={userName}
           onLogout={handleLogout}
         />
 
         <div className="flex-1">
           <Routes>
-            <Route path="/" element={<Home searchTerm={searchTerm} />} />
+            <Route path="/" element={<Bienvenida />} />
 
-            <Route path="/pelicula/:id" element={<DetallePeli />} />
+            <Route
+              path="/home"
+              element={protect(<Home searchTerm={searchTerm} />)}
+            />
 
-            <Route path="/login" element={<Login onLogin={handleLogin} />} />
+            <Route
+              path="/peliculas"
+              element={protect(<Peliculas searchTerm={searchTerm} />)}
+            />
 
-            <Route path="/register" element={<Register />} />
+            <Route path="/pelicula/:id" element={protect(<DetallePeli />)} />
+
+            <Route
+              path="/login"
+              element={
+                isLogged ? (
+                  <Navigate to="/home" replace />
+                ) : (
+                  <Login onLogin={handleLogin} />
+                )
+              }
+            />
+
+            <Route
+              path="/register"
+              element={
+                isLogged ? <Navigate to="/home" replace /> : <Register />
+              }
+            />
+
+            <Route path="/planes" element={<Plans />} />
 
             <Route path="/admin" element={protect(<Admin />)} />
 
@@ -64,13 +101,10 @@ export default function App() {
 
             <Route path="/admin/series" element={protect(<AdminSeries />)} />
 
-            <Route path="/peliculas" element={<Peliculas searchTerm={searchTerm} />} />
-
             <Route
               path="/admin/usuarios"
               element={protect(<AdminUsuarios />)}
             />
-            <Route path="/planes" element={<Plans />} />
 
             <Route path="*" element={<Error404 />} />
           </Routes>
