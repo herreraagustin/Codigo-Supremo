@@ -110,7 +110,7 @@ export function guardarCambios(cambios: CambiosCatalogo): void {
     window.dispatchEvent(new Event("catalogo-actualizado"));
   } catch (error) {
     console.error("Error al guardar los cambios:", error);
-    throw new Error("No se pudieron guardar los cambios.");
+    throw new Error("No se pudieron guardar los cambios.", { cause: error });
   }
 }
 

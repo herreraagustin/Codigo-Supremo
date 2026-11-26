@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { FiArrowLeft, FiFilm, FiStar } from "react-icons/fi";

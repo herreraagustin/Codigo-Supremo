@@ -52,7 +52,7 @@ export const Login = ({ onLogin }: LoginProps) => {
       return;
     }
 
-    let cuentasRegistradas: CuentaRegistrada[] = [];
+    let cuentasRegistradas: CuentaRegistrada[];
 
     try {
       const datosGuardados = localStorage.getItem("cuentas");

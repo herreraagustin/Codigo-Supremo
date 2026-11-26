@@ -1,4 +1,3 @@
-﻿
 import { useEffect, useMemo, useState } from "react";
 import { SerieCard } from "../Components/SerieCard";
 import { getSeries } from "../services/SeriesApi";
@@ -74,8 +73,13 @@ export function Series({ searchTerm = "" }: Props) {
           hayMas: lote.length >= 20,
         });
       })
-      .catch(() => {
-        if (ctrl.signal.aborted) return;
+      .catch((error: unknown) => {
+        if (
+          ctrl.signal.aborted ||
+          (error instanceof DOMException && error.name === "AbortError")
+        ) {
+          return;
+        }
 
         setResultado({
           clave,
@@ -193,9 +197,7 @@ export function Series({ searchTerm = "" }: Props) {
                 >
                   <span
                     aria-hidden="true"
-                    className={
-                      ICONOS[g] ? "" : "opacity-70"
-                    }
+                    className={ICONOS[g] ? "" : "opacity-70"}
                   >
                     {ICONOS[g] ?? "🎬"}
                   </span>

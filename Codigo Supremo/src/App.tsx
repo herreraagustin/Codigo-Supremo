@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./Components/Navbar";
 import { Footer } from "./Components/Footer";
 import { Home } from "./pages/Home";
 import { DetallePeli } from "./pages/DetallePeli";
+import { Series } from "./pages/Series";
 import { DetalleSerie } from "./pages/DetalleSerie";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
@@ -15,8 +15,6 @@ import { AdminUsuarios } from "./pages/AdminUsuarios";
 import { Bienvenida } from "./pages/Bienvenida";
 import { Error404 } from "./pages/Error404";
 import { Peliculas } from "./pages/Peliculas";
-import { Series } from "./pages/Series";
-
 import { administradores } from "./Data/Usuarios";
 
 export default function App() {
@@ -114,7 +112,7 @@ export default function App() {
 
             <Route
               path="/series"
-              element={protect(<Series />)}
+              element={protect(<Series searchTerm={searchTerm} />)}
             />
 
             <Route
