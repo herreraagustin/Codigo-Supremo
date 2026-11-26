@@ -1,9 +1,11 @@
+
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import { Footer } from "./components/Footer";
+import Navbar from "./Components/Navbar";
+import { Footer } from "./Components/Footer";
 import { Home } from "./pages/Home";
 import { DetallePeli } from "./pages/DetallePeli";
+import { DetalleSerie } from "./pages/DetalleSerie";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Admin } from "./pages/Admin";
@@ -13,6 +15,7 @@ import { AdminUsuarios } from "./pages/AdminUsuarios";
 import { Bienvenida } from "./pages/Bienvenida";
 import { Error404 } from "./pages/Error404";
 import { Peliculas } from "./pages/Peliculas";
+import { Series } from "./pages/Series";
 
 import { administradores } from "./Data/Usuarios";
 
@@ -107,6 +110,16 @@ export default function App() {
             <Route
               path="/pelicula/:id"
               element={protect(<DetallePeli />)}
+            />
+
+            <Route
+              path="/series"
+              element={protect(<Series />)}
+            />
+
+            <Route
+              path="/serie/:id"
+              element={protect(<DetalleSerie />)}
             />
 
             <Route

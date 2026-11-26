@@ -13,6 +13,7 @@ type NavbarProps = {
 const links = [
   { to: "/home", label: "Inicio" },
   { to: "/peliculas", label: "Películas" },
+  { to: "/series", label: "Series" },
 ];
 
 export default function Navbar({
@@ -33,15 +34,18 @@ export default function Navbar({
 
   const cerrarMenu = () => setMenuOpen(false);
 
-  // El buscador solo aparece en las páginas que muestran resultados
   const mostrarBuscador =
     isLogged &&
-    (location.pathname === "/home" || location.pathname === "/peliculas");
+    ["/home", "/peliculas", "/series"].includes(location.pathname);
+
+  const textoBuscador =
+    location.pathname === "/series"
+      ? "Buscar series por nombre..."
+      : "Buscar películas por nombre...";
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/5 bg-[#0b1220]/90 backdrop-blur">
       <nav className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
-        {/* Logo */}
         <Link
           to={isLogged ? "/home" : "/"}
           className="flex shrink-0 items-center gap-2 text-lg font-bold text-white"
@@ -54,7 +58,6 @@ export default function Navbar({
           CineRolling
         </Link>
 
-        {/* Navegación */}
         {isLogged && (
           <div className="ml-4 hidden items-center gap-6 md:flex">
             {links.map((l) => (
@@ -71,14 +74,10 @@ export default function Navbar({
           </div>
         )}
 
-        {/* Buscador */}
         {mostrarBuscador && (
           <div className="mx-auto hidden w-full max-w-md md:block">
             <label className="relative block">
-              <span className="sr-only">
-                Buscar películas por nombre
-              </span>
-
+              <span className="sr-only">{textoBuscador}</span>
               <svg
                 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
                 viewBox="0 0 24 24"
@@ -91,19 +90,17 @@ export default function Navbar({
                 <circle cx="11" cy="11" r="7" />
                 <path d="m20 20-3.5-3.5" />
               </svg>
-
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="Buscar películas por nombre..."
+                placeholder={textoBuscador}
                 className="w-full rounded-full bg-[#151d2e] py-2 pl-10 pr-4 text-sm text-white placeholder-slate-400 outline-none ring-1 ring-transparent transition focus:ring-blue-500"
               />
             </label>
           </div>
         )}
 
-        {/* Acciones de escritorio */}
         <div className="ml-auto hidden items-center gap-3 md:flex">
           {isLogged ? (
             <>
@@ -114,7 +111,6 @@ export default function Navbar({
                 >
                   {userName.charAt(0).toUpperCase()}
                 </div>
-
                 <span
                   className="max-w-40 truncate text-sm font-semibold text-white"
                   title={userName}
@@ -122,7 +118,6 @@ export default function Navbar({
                   {userName}
                 </span>
               </div>
-
               <button
                 type="button"
                 onClick={onLogout}
@@ -139,7 +134,6 @@ export default function Navbar({
               >
                 Registrarse
               </Link>
-
               <Link
                 to="/login"
                 className="rounded-full border border-white/10 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#151d2e]"
@@ -150,7 +144,6 @@ export default function Navbar({
           )}
         </div>
 
-        {/* Botón hamburguesa */}
         <button
           type="button"
           className="ml-auto rounded-md p-2 text-slate-300 hover:text-white md:hidden"
@@ -175,12 +168,10 @@ export default function Navbar({
         </button>
       </nav>
 
-      {/* Menú móvil */}
       {menuOpen && (
         <div className="space-y-4 border-t border-white/5 px-4 py-4 md:hidden">
           {isLogged ? (
             <>
-              {/* Usuario */}
               <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
                 <div
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 font-bold text-white"
@@ -188,11 +179,8 @@ export default function Navbar({
                 >
                   {userName.charAt(0).toUpperCase()}
                 </div>
-
                 <div className="min-w-0">
-                  <p className="text-xs text-slate-400">
-                    Sesión iniciada
-                  </p>
+                  <p className="text-xs text-slate-400">Sesión iniciada</p>
                   <p className="truncate text-sm font-semibold text-white">
                     {userName}
                   </p>
@@ -204,7 +192,8 @@ export default function Navbar({
                   type="text"
                   value={searchTerm}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  placeholder="Buscar películas por nombre..."
+                  placeholder={textoBuscador}
+                  aria-label={textoBuscador}
                   className="w-full rounded-full bg-[#151d2e] px-4 py-2 text-sm text-white placeholder-slate-400 outline-none focus:ring-1 focus:ring-blue-500"
                 />
               )}
@@ -252,7 +241,6 @@ export default function Navbar({
               >
                 Registrarse
               </Link>
-
               <Link
                 to="/login"
                 onClick={cerrarMenu}
