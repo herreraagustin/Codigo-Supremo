@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import { obtenerCatalogo } from "../services/peliculas";
 import type { Contenido } from "../services/peliculas";
 import { obtenerCambios, guardarCambios } from "../services/almacenamiento";
-import { CardAdmin } from "../components/CardAdmin";
+import { CardAdmin } from "../Components/CardAdmin";
 
 function obtenerGenerosDeSerie(serie: Contenido): string[] {
   const resultado: string[] = [];

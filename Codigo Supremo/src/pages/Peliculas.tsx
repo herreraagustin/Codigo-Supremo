@@ -3,8 +3,8 @@ import { obtenerCatalogo } from "../services/peliculas";
 import type { Contenido } from "../services/peliculas";
 import { obtenerCambios } from "../services/almacenamiento";
 import { obtenerGenerosDeContenido } from "../services/Generos";
-import { CardPelicula } from "../components/Card-Pelicula";
-import GenreFilter from "../components/GeneroFilter";
+import { CardPelicula } from "../Components/Card-Pelicula";
+import GenreFilter from "../Components/GeneroFilter";
 
 function listarGeneros(lista: Contenido[]): string[] {
   const mapa = new Map<string, string>();
