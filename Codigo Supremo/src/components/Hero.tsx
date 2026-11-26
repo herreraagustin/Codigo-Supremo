@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 import { useNavigate } from "react-router-dom";
-import type { Movie } from "../Types/Movies";
-=======
 import type { Movie } from "../types/Movies";
->>>>>>> e08b64a (renombramos las carpetas a letras minusculas)
 
 type HeroProps = {
   movies: Movie[];
