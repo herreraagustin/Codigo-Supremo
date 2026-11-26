@@ -1,4 +1,4 @@
-import type { Movie } from "../Types/Movies";
+import type { Movie } from "../types/Movies";
 import type { Contenido } from "./peliculas";
 
 export function mapContenido(c: Contenido): Movie {
