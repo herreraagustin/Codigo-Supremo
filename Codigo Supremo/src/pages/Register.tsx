@@ -1,4 +1,3 @@
-
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -130,8 +129,8 @@ export const Register = () => {
       return;
     }
 
-    if (anio > 2030) {
-      setError("El año de vencimiento no puede superar el 30 (2030).");
+    if (anio > 2040) {
+      setError("El año de vencimiento no puede superar el 40 (2040).");
       return;
     }
 
@@ -435,7 +434,10 @@ export const Register = () => {
               </button>
             </form>
           ) : (
-            <form onSubmit={confirmarRegistro} className="space-y-5 sm:space-y-6">
+            <form
+              onSubmit={confirmarRegistro}
+              className="space-y-5 sm:space-y-6"
+            >
               <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
                 {plans.map((plan) => (
                   <button
@@ -598,9 +600,9 @@ export const Register = () => {
               </div>
 
               <p className="rounded-lg border border-amber-400/10 bg-amber-400/5 p-3 text-xs leading-5 text-slate-400">
-                Esta es una simulación académica y no procesa pagos. No
-                ingreses datos de una tarjeta real; utilizá datos ficticios
-                para probar el formulario.
+                Esta es una simulación académica y no procesa pagos. No ingreses
+                datos de una tarjeta real; utilizá datos ficticios para probar
+                el formulario.
               </p>
 
               {error && (
