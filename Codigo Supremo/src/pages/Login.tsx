@@ -14,7 +14,7 @@ import {
   FiShield,
 } from "react-icons/fi";
 
-import { administradores } from "../Data/Usuarios";
+import { administradores } from "../data/Usuarios";
 
 type LoginProps = {
   onLogin: (nombreUsuario: string) => void;
