@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FiArrowLeft,
@@ -23,8 +23,22 @@ type Usuario = {
 const CLAVE_CUENTAS = "cuentas";
 
 export const AdminUsuarios = () => {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
-  const [cargando, setCargando] = useState(true);
+  const [usuarios, setUsuarios] = useState<Usuario[]>(() => {
+    try {
+      const datos = localStorage.getItem(CLAVE_CUENTAS);
+      if (!datos) return [];
+
+      const cuentas: Usuario[] = JSON.parse(datos);
+      return cuentas.map((cuenta): Usuario => ({
+        ...cuenta,
+        rol: cuenta.rol === "admin" ? "admin" : "user",
+      }));
+    } catch (error) {
+      console.error("Error al cargar usuarios:", error);
+      return [];
+    }
+  });
+  const [cargando, setCargando] = useState(false);
 
   const cargarUsuarios = () => {
     setCargando(true);
@@ -60,10 +74,6 @@ export const AdminUsuarios = () => {
       setCargando(false);
     }
   };
-
-  useEffect(() => {
-    cargarUsuarios();
-  }, []);
 
   const cambiarRol = (email: string) => {
     const confirmar = window.confirm(

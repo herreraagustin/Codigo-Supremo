@@ -1,11 +1,12 @@
-
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-import Navbar from "./components/Navbar";
-import { Footer } from "./components/Footer";
+import Navbar from "./Components/Navbar";
+import { Footer } from "./Components/Footer";
 import { Home } from "./pages/Home";
 import { DetallePeli } from "./pages/DetallePeli";
+import { Series } from "./pages/Series";
+import { DetalleSerie } from "./pages/DetalleSerie";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Admin } from "./pages/Admin";
@@ -107,10 +108,21 @@ export default function App() {
               element={<Navigate to="/" replace />}
             />
 
-            {/* Detalles de películas y series */}
+            {/* Películas: detalle */}
             <Route
               path="/pelicula/:id"
               element={protect(<DetallePeli />)}
+            />
+
+            {/* Series: catálogo y detalle */}
+            <Route
+              path="/series"
+              element={protect(<Series searchTerm={searchTerm} />)}
+            />
+
+            <Route
+              path="/serie/:id"
+              element={protect(<DetalleSerie />)}
             />
 
             {/* Inicio de sesión */}
