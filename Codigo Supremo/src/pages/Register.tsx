@@ -14,7 +14,7 @@ import {
   FiArrowRight,
   FiShield,
 } from "react-icons/fi";
-import { plans } from "../Data/Plans";
+import { plans } from "../data/Plans";
 
 type Cuenta = {
   nombreUsuario: string;

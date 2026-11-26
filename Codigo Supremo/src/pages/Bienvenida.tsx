@@ -5,7 +5,7 @@ import { obtenerCatalogo } from "../services/peliculas";
 import type { Contenido } from "../services/peliculas";
 import { obtenerCambios } from "../services/almacenamiento";
 import { mapContenido } from "../services/MapContenido";
-import { plans } from "../Data/Plans";
+import { plans } from "../data/Plans";
 
 export const Bienvenida = () => {
   const [peliculas, setPeliculas] = useState<Contenido[]>([]);

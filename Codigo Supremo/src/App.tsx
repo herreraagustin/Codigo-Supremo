@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Navbar from "./Components/Navbar";
-import { Footer } from "./Components/Footer";
+import Navbar from "./components/Navbar";
+import { Footer } from "./components/Footer";
 import { Home } from "./pages/Home";
 import { DetallePeli } from "./pages/DetallePeli";
 import { Series } from "./pages/Series";
@@ -15,7 +15,7 @@ import { AdminUsuarios } from "./pages/AdminUsuarios";
 import { Bienvenida } from "./pages/Bienvenida";
 import { Error404 } from "./pages/Error404";
 import { Peliculas } from "./pages/Peliculas";
-import { administradores } from "./Data/Usuarios";
+import { administradores } from "./data/Usuarios";
 
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
