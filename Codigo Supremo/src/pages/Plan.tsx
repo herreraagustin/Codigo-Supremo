@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { plans } from "../Data/Plans";
+import { plans } from "../data/Plans";
 
 const Plans = () => (
   <section className="min-h-[70vh] bg-[#070b14] px-4 py-12 text-white">

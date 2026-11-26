@@ -1,6 +1,7 @@
+<<<<<<< HEAD
 ﻿import { useEffect, useState } from "react";
-import { SerieCard } from "../Components/SerieCard";
-import GenreFilter from "../Components/GeneroFilter";
+import { SerieCard } from "../components/SerieCard";
+import GenreFilter from "../components/GeneroFilter";
 import {
   obtenerCatalogo,
   type Contenido,
@@ -10,6 +11,12 @@ import {
   posterDe,
   type SerieResumen,
 } from "../services/SeriesApi";
+=======
+import { useEffect, useMemo, useState } from "react";
+import { SerieCard } from "../components/SerieCard";
+import { getSeries } from "../services/SeriesApi";
+import type { SerieResumen } from "../services/SeriesApi";
+>>>>>>> e08b64a (renombramos las carpetas a letras minusculas)
 
 type SeriesProps = {
   searchTerm?: string;
