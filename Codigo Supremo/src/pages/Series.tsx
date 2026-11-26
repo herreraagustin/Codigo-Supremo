@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { SerieCard } from "../Components/SerieCard";
+import { SerieCard } from "../components/SerieCard";
 import { getSeries } from "../services/SeriesApi";
 import type { SerieResumen } from "../services/SeriesApi";
 
