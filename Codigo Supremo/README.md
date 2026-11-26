@@ -1,78 +1,111 @@
-# React + TypeScript + Vite
+🎬 CineRolling
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+CineRolling es una aplicación web de películas y series desarrollada con React y TypeScript. Permite explorar contenido audiovisual, consultar sus detalles y administrar el catálogo mediante una interfaz moderna y adaptable.
 
-Currently, two official plugins are available:
+✨ Características
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+🎥 Catálogo de películas y series.
 
-## React Compiler
+🔎 Búsqueda y filtrado por género.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+📄 Página de detalles del contenido.
 
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
+👤 Registro e inicio de sesión de usuarios.
 
-## Expanding the ESLint configuration
+🔐 Perfiles de usuario y administrador.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+🛠️ Panel de administración para gestionar películas y series.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+👥 Administración de cuentas y roles de usuario.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+💾 Persistencia de cambios mediante localStorage.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+📱 Interfaz adaptable a diferentes tamaños de pantalla.
 
-```
+🧰 Tecnologías utilizadas
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+React 19
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+TypeScript
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Vite
 
-```
+Tailwind CSS
+
+React Router DOM
+
+React Icons
+
+SweetAlert2
+
+API de películas y series
+
+localStorage
+
+🚀 Instalación y ejecución
+
+Requisitos previos
+
+Node.js
+
+npm
+
+Git
+
+1. Clonar el repositorio
+
+git clone https://github.com/herreraagustin/Codigo-Supremo.git
+
+2. Entrar en la carpeta del proyecto
+
+cd Codigo-Supremo
+
+3. Instalar las dependencias
+
+npm install
+
+4. Iniciar el servidor de desarrollo
+
+npm run dev
+
+Abrir en el navegador la dirección local que muestra Vite en la terminal.
+
+📜 Scripts disponibles
+
+Comando
+
+Descripción
+
+npm run dev
+
+Inicia el servidor de desarrollo.
+
+npm run build
+
+Comprueba TypeScript y genera la versión de producción.
+
+npm run lint
+
+Ejecuta ESLint para revisar el código.
+
+npm run preview
+
+Permite previsualizar la versión de producción.
+
+💾 Persistencia de datos
+
+La aplicación utiliza localStorage para conservar determinados cambios realizados desde el navegador.
+
+Los datos almacenados localmente no se sincronizan automáticamente entre dispositivos o navegadores.
+
+📁 Estructura del proyecto
+
+El código se organiza en páginas, componentes y servicios para facilitar el mantenimiento y la reutilización del código.
+
+👨‍💻 Autor
+
+Proyecto desarrollado como práctica de desarrollo web con React y TypeScript.
+
+🔗 Repositorio
+
+Ver CineRolling en GitHub

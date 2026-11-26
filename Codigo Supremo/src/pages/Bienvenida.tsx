@@ -86,15 +86,17 @@ export const Bienvenida = () => {
     titulo: string,
     contenido: Contenido[]
   ) => (
-    <section className="mx-auto max-w-7xl px-6 py-10 md:px-10">
-      <h2 className="mb-6 text-2xl font-bold md:text-3xl">{titulo}</h2>
+    <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-12">
+      <h2 className="mb-5 text-2xl font-bold sm:mb-6 sm:text-3xl">
+        {titulo}
+      </h2>
 
       {contenido.length === 0 ? (
-        <p className="text-slate-400">
+        <p className="text-sm text-slate-400 sm:text-base">
           Todavía no hay contenido para mostrar.
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5">
           {contenido.slice(0, 5).map((item) => {
             const pelicula = mapContenido(item);
 
@@ -103,27 +105,27 @@ export const Bienvenida = () => {
                 key={item.id}
                 href="#registro"
                 aria-label={`Ir al registro para disfrutar de ${pelicula.name}`}
-                className="group overflow-hidden rounded-xl border border-slate-800 bg-[#0b1220] transition hover:-translate-y-1 hover:border-blue-500"
+                className="group min-w-0 overflow-hidden rounded-xl border border-slate-800 bg-[#0b1220] transition hover:-translate-y-1 hover:border-blue-500"
               >
                 {pelicula.image ? (
                   <img
                     src={pelicula.image}
                     alt={`Póster de ${pelicula.name}`}
                     loading="lazy"
-                    className="aspect-[2/3] w-full object-cover transition group-hover:scale-[1.02]"
+                    className="aspect-[2/3] w-full object-cover transition duration-300 group-hover:scale-[1.02]"
                   />
                 ) : (
-                  <div className="flex aspect-[2/3] items-center justify-center bg-slate-800 p-4 text-center text-slate-400">
+                  <div className="flex aspect-[2/3] items-center justify-center bg-slate-800 p-2 text-center text-sm text-slate-400 sm:p-4">
                     Sin póster
                   </div>
                 )}
 
-                <div className="p-3">
-                  <h3 className="line-clamp-2 font-semibold text-white">
+                <div className="min-w-0 p-2 sm:p-3">
+                  <h3 className="line-clamp-2 break-words text-sm font-semibold text-white sm:text-base">
                     {pelicula.name || "Sin título"}
                   </h3>
 
-                  <p className="mt-2 text-sm text-slate-400">
+                  <p className="mt-2 text-xs text-slate-400 sm:text-sm">
                     {pelicula.year || "Año desconocido"}
                   </p>
                 </div>
@@ -136,36 +138,36 @@ export const Bienvenida = () => {
   );
 
   return (
-    <main className="min-h-screen bg-[#070b14] text-white">
+    <main className="min-h-screen overflow-x-hidden bg-[#070b14] text-white">
       {/* Presentación */}
-      <section className="relative overflow-hidden px-6 py-24 text-center md:py-32">
-        <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-72 -translate-x-1/2 rounded-full bg-blue-500/10 blur-3xl" />
+      <section className="relative overflow-hidden px-4 py-16 text-center sm:px-6 sm:py-20 md:py-28 lg:py-32">
+        <div className="pointer-events-none absolute left-1/2 top-0 h-56 w-56 -translate-x-1/2 rounded-full bg-blue-500/10 blur-3xl sm:h-72 sm:w-72" />
 
-        <div className="relative mx-auto max-w-4xl">
-          <p className="mb-4 font-bold uppercase tracking-[0.25em] text-cyan-400">
+        <div className="relative mx-auto w-full max-w-4xl">
+          <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-cyan-400 sm:text-sm sm:tracking-[0.25em]">
             Bienvenido a CineRolling
           </p>
 
-          <h1 className="text-4xl font-black leading-tight md:text-6xl">
+          <h1 className="text-3xl font-black leading-tight sm:text-4xl md:text-5xl lg:text-6xl">
             Tus próximas historias favoritas te esperan.
           </h1>
 
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-400 md:text-lg">
+          <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-slate-400 sm:mt-6 sm:text-base md:text-lg">
             Descubrí películas y series para disfrutar cuando quieras.
             Creá tu cuenta y preparate para una nueva historia.
           </p>
 
-          <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
+          <div className="mx-auto mt-7 flex w-full max-w-sm flex-col justify-center gap-3 sm:mt-9 sm:max-w-none sm:flex-row sm:gap-4">
             <Link
               to="/register"
-              className="rounded-full bg-blue-500 px-7 py-3 font-bold text-white transition hover:bg-blue-400"
+              className="inline-flex items-center justify-center rounded-full bg-blue-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-400 sm:px-7 sm:text-base"
             >
               Crear mi cuenta
             </Link>
 
             <a
               href="#peliculas"
-              className="rounded-full border border-slate-600 px-7 py-3 font-bold transition hover:border-cyan-400 hover:text-cyan-400"
+              className="inline-flex items-center justify-center rounded-full border border-slate-600 px-6 py-3 text-sm font-bold transition hover:border-cyan-400 hover:text-cyan-400 sm:px-7 sm:text-base"
             >
               Descubrir CineRolling
             </a>
@@ -173,9 +175,9 @@ export const Bienvenida = () => {
         </div>
       </section>
 
-      {/* Muestra de películas y series */}
+      {/* Películas y series */}
       {cargando ? (
-        <p className="px-6 py-10 text-center text-slate-400">
+        <p className="px-4 py-10 text-center text-sm text-slate-400 sm:px-6 sm:text-base">
           Cargando películas y series...
         </p>
       ) : (
@@ -189,79 +191,84 @@ export const Bienvenida = () => {
       )}
 
       {/* Planes */}
-      <section id="planes" className="mx-auto max-w-6xl px-6 py-16">
-  <div className="mb-10 text-center">
-    <p className="mb-3 font-bold uppercase tracking-widest text-cyan-400">
-      Elegí cómo disfrutar
-    </p>
-
-    <h2 className="text-3xl font-black md:text-4xl">
-      Encontrá tu plan ideal
-    </h2>
-
-    <p className="mx-auto mt-4 max-w-xl text-slate-400">
-      Elegí el plan que mejor se adapte a vos y empezá tu experiencia.
-    </p>
-  </div>
-
-  <div className="grid gap-6 md:grid-cols-3">
-    {plans.map((plan) => (
-      <article
-        key={plan.id}
-        className={`flex flex-col rounded-2xl border bg-[#0b1220] p-6 transition hover:-translate-y-1 hover:border-blue-500 ${
-          plan.id === "estandar"
-            ? "border-blue-500 shadow-lg shadow-blue-500/10"
-            : "border-slate-800"
-        }`}
+      <section
+        id="planes"
+        className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8"
       >
-        {plan.id === "estandar" && (
-          <span className="mb-4 w-fit rounded-full bg-blue-500/15 px-3 py-1 text-xs font-bold text-cyan-400">
-            RECOMENDADO
-          </span>
-        )}
+        <div className="mb-8 text-center sm:mb-10">
+          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-cyan-400 sm:text-sm">
+            Elegí cómo disfrutar
+          </p>
 
-        <h3 className="text-2xl font-bold">{plan.name}</h3>
+          <h2 className="text-2xl font-black sm:text-3xl md:text-4xl">
+            Encontrá tu plan ideal
+          </h2>
 
-        <p className="mt-3 text-sm text-slate-400">
-          {plan.description}
-        </p>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-400 sm:text-base">
+            Elegí el plan que mejor se adapte a vos y empezá tu experiencia.
+          </p>
+        </div>
 
-        <p className="mt-6 text-3xl font-black text-cyan-400">
-          {plan.price}
-        </p>
-
-        <ul className="mt-6 flex-1 space-y-3">
-          {plan.benefits.map((benefit) => (
-            <li
-              key={benefit}
-              className="flex gap-2 text-sm text-slate-300"
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+          {plans.map((plan) => (
+            <article
+              key={plan.id}
+              className={`flex min-w-0 flex-col rounded-2xl border bg-[#0b1220] p-5 transition hover:-translate-y-1 hover:border-blue-500 sm:p-6 ${
+                plan.id === "estandar"
+                  ? "border-blue-500 shadow-lg shadow-blue-500/10"
+                  : "border-slate-800"
+              }`}
             >
-              <span className="text-cyan-400">✓</span>
-              {benefit}
-            </li>
+              {plan.id === "estandar" && (
+                <span className="mb-4 w-fit rounded-full bg-blue-500/15 px-3 py-1 text-xs font-bold text-cyan-400">
+                  RECOMENDADO
+                </span>
+              )}
+
+              <h3 className="break-words text-xl font-bold sm:text-2xl">
+                {plan.name}
+              </h3>
+
+              <p className="mt-3 break-words text-sm leading-relaxed text-slate-400">
+                {plan.description}
+              </p>
+
+              <p className="mt-5 break-words text-2xl font-black text-cyan-400 sm:mt-6 sm:text-3xl">
+                {plan.price}
+              </p>
+
+              <ul className="mt-5 flex-1 space-y-3 sm:mt-6">
+                {plan.benefits.map((benefit) => (
+                  <li
+                    key={benefit}
+                    className="flex items-start gap-2 text-sm leading-relaxed text-slate-300"
+                  >
+                    <span className="shrink-0 text-cyan-400">✓</span>
+                    <span className="min-w-0 break-words">{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+            </article>
           ))}
-        </ul>
-      </article>
-    ))}
-  </div>
-</section>
+        </div>
+      </section>
 
       {/* Registro al final de la página */}
       <section
         id="registro"
-        className="mx-6 mb-16 rounded-3xl border border-slate-800 bg-gradient-to-r from-[#0b1220] to-[#111d35] px-6 py-12 text-center md:mx-auto md:max-w-6xl md:px-12"
+        className="mx-4 mb-10 rounded-2xl border border-slate-800 bg-gradient-to-r from-[#0b1220] to-[#111d35] px-5 py-9 text-center sm:mx-6 sm:mb-16 sm:rounded-3xl sm:px-8 sm:py-12 md:mx-auto md:max-w-6xl md:px-12"
       >
-        <h2 className="text-3xl font-black md:text-4xl">
+        <h2 className="text-2xl font-black sm:text-3xl md:text-4xl">
           ¿Listo para empezar?
         </h2>
 
-        <p className="mx-auto mt-4 max-w-xl text-slate-400">
+        <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-400 sm:text-base">
           Creá tu cuenta y preparate para descubrir tu próxima historia favorita.
         </p>
 
         <Link
           to="/register"
-          className="mt-7 inline-block rounded-full bg-blue-500 px-7 py-3 font-bold transition hover:bg-blue-400"
+          className="mt-6 inline-flex items-center justify-center rounded-full bg-blue-500 px-7 py-3 text-sm font-bold transition hover:bg-blue-400 sm:mt-7 sm:text-base"
         >
           Registrarme
         </Link>

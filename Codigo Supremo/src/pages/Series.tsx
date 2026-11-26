@@ -26,7 +26,7 @@ const GENEROS = [
 
 const ICONOS: Record<string, string> = {
   Drama: "🎭",
-  Romance: "❤️",
+  Romance: "💞",
 };
 
 interface Resultado {
@@ -57,18 +57,30 @@ export function Series({ searchTerm = "" }: Props) {
   useEffect(() => {
     const ctrl = new AbortController();
 
-    getSeries({ genre: genero, skip: 0, signal: ctrl.signal })
-      .then((lote) =>
+    getSeries({
+      genre: genero,
+      skip: 0,
+      signal: ctrl.signal,
+    })
+      .then((lote) => {
+        if (ctrl.signal.aborted) return;
+
         setResultado({
           clave,
           series: lote,
           error: false,
           skip: lote.length,
           hayMas: lote.length >= 20,
-        }),
-      )
-      .catch((e: unknown) => {
-        if (e instanceof DOMException && e.name === "AbortError") return;
+        });
+      })
+      .catch((error: unknown) => {
+        if (
+          ctrl.signal.aborted ||
+          (error instanceof DOMException && error.name === "AbortError")
+        ) {
+          return;
+        }
+
         setResultado({
           clave,
           series: [],
@@ -82,20 +94,25 @@ export function Series({ searchTerm = "" }: Props) {
   }, [genero, clave]);
 
   const cargarMas = async () => {
-    if (!resultado || cargandoMas) return;
+    if (!resultado || cargandoMas || cargando) return;
 
     const claveActual = clave;
+    const skipActual = resultado.skip;
+
     setCargandoMas(true);
     setErrorMas(false);
 
     try {
-      const lote = await getSeries({ genre: genero, skip: resultado.skip });
+      const lote = await getSeries({
+        genre: genero,
+        skip: skipActual,
+      });
 
       setResultado((prev) => {
         if (!prev || prev.clave !== claveActual) return prev;
 
-        const ids = new Set(prev.series.map((s) => s.id));
-        const nuevas = lote.filter((s) => !ids.has(s.id));
+        const ids = new Set(prev.series.map((serie) => serie.id));
+        const nuevas = lote.filter((serie) => !ids.has(serie.id));
 
         return {
           ...prev,
@@ -117,30 +134,35 @@ export function Series({ searchTerm = "" }: Props) {
   );
 
   const visibles = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    if (!q) return todas;
-    return todas.filter((s) => s.name.toLowerCase().includes(q));
+    const consulta = searchTerm.trim().toLowerCase();
+
+    if (!consulta) return todas;
+
+    return todas.filter((serie) =>
+      serie.name.toLowerCase().includes(consulta),
+    );
   }, [todas, searchTerm]);
 
   const limpiar = () => setGenero("");
 
   return (
     <main className="mx-auto w-full max-w-[2200px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-      {/* Filtro de géneros */}
+      {/* Filtros por género */}
       <section className="rounded-2xl border border-[#1c2840] bg-[#0a101d] p-4 sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <button
             type="button"
-            onClick={() => setPanelAbierto((v) => !v)}
+            onClick={() => setPanelAbierto((abierto) => !abierto)}
             aria-expanded={panelAbierto}
             className="flex items-center gap-2.5 text-left text-base font-bold text-white sm:text-lg"
           >
             <span
+              aria-hidden="true"
               className={`inline-block text-cyan-400 transition-transform ${
                 panelAbierto ? "" : "-rotate-90"
               }`}
             >
-              ▼
+              ⌄
             </span>
             Géneros de series
           </button>
@@ -151,7 +173,7 @@ export function Series({ searchTerm = "" }: Props) {
             disabled={!genero}
             className="flex items-center gap-2 rounded-full border border-[#1c2840] px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-blue-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 sm:px-4 sm:text-sm"
           >
-            <span aria-hidden>↻</span>
+            <span aria-hidden="true">↻</span>
             Limpiar filtros
           </button>
         </div>
@@ -160,6 +182,7 @@ export function Series({ searchTerm = "" }: Props) {
           <div className="mt-4 flex flex-wrap gap-2 sm:gap-2.5">
             {GENEROS.map((g) => {
               const activo = genero === g;
+
               return (
                 <button
                   key={g}
@@ -172,8 +195,11 @@ export function Series({ searchTerm = "" }: Props) {
                       : "border-[#1c2840] bg-[#0d1526] text-slate-200 hover:border-blue-500/70"
                   }`}
                 >
-                  <span aria-hidden className={ICONOS[g] ? "" : "opacity-50 grayscale"}>
-                    {ICONOS[g] ?? "🎞️"}
+                  <span
+                    aria-hidden="true"
+                    className={ICONOS[g] ? "" : "opacity-70"}
+                  >
+                    {ICONOS[g] ?? "🎬"}
                   </span>
                   {g}
                 </button>
@@ -201,7 +227,7 @@ export function Series({ searchTerm = "" }: Props) {
         )}
       </div>
 
-      {/* Grilla: 2 (celular) → 3 → 4 → 5 (PC) → 6 → 7 (TV) */}
+      {/* Grilla adaptable a distintos tamaños de pantalla */}
       {cargando ? (
         <ul className={GRID}>
           {Array.from({ length: 10 }).map((_, i) => (
@@ -216,9 +242,11 @@ export function Series({ searchTerm = "" }: Props) {
           <p className="text-lg font-bold text-white">
             No pudimos cargar las series
           </p>
+
           <p className="mt-1 text-sm text-slate-400">
             Revisá tu conexión e intentá de nuevo.
           </p>
+
           <button
             type="button"
             onClick={() => setIntento((n) => n + 1)}
@@ -232,9 +260,11 @@ export function Series({ searchTerm = "" }: Props) {
           <p className="text-lg font-bold text-white">
             No encontramos series
           </p>
+
           <p className="mt-1 text-sm text-slate-400">
             Probá con otro género o con otra búsqueda.
           </p>
+
           {genero && (
             <button
               type="button"
@@ -265,6 +295,7 @@ export function Series({ searchTerm = "" }: Props) {
               >
                 {cargandoMas ? "Cargando..." : "Cargar más series"}
               </button>
+
               {errorMas && (
                 <p className="text-xs text-red-400">
                   No se pudieron cargar más series. Probá de nuevo.

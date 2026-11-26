@@ -1,10 +1,10 @@
-
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { CardAdmin } from "../Components/CardAdmin";
 import { obtenerCatalogo } from "../services/peliculas";
 import type { Contenido } from "../services/peliculas";
 import { obtenerCambios, guardarCambios } from "../services/almacenamiento";
+
 
 function normalizarTitulo(valor: string): string {
   return valor
@@ -172,6 +172,21 @@ export const AdminPeliculas = () => {
 
     void cargarPeliculas();
   }, []);
+
+  useEffect(() => {
+    if (!mostrarModal) return;
+
+    const cerrarConEscape = (evento: KeyboardEvent) => {
+      if (evento.key === "Escape") {
+        limpiarFormulario();
+        setMostrarModal(false);
+      }
+    };
+
+    window.addEventListener("keydown", cerrarConEscape);
+
+    return () => window.removeEventListener("keydown", cerrarConEscape);
+  }, [mostrarModal]);
 
   const alternarGenero = (genero: string) => {
     setGeneros((actuales) =>
@@ -494,12 +509,20 @@ export const AdminPeliculas = () => {
     ) : null;
 
   return (
-    <main className="min-h-screen bg-[#070b14] px-4 py-8 text-white">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Administrar películas</h1>
-            <p className="mt-2 text-gray-400">
+    <main className="min-h-screen overflow-x-hidden bg-[#070b14] px-4 py-6 text-white sm:px-6 sm:py-8 lg:px-10">
+      <div className="mx-auto w-full max-w-7xl">
+        <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <Link
+              to="/admin"
+              className="mb-3 inline-flex min-h-10 items-center rounded-lg py-2 pr-3 text-sm text-blue-400 transition hover:text-blue-300 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            >
+              ← Volver al panel
+            </Link>
+            <h1 className="text-2xl font-bold leading-tight sm:text-3xl lg:text-4xl">
+              Administrar películas
+            </h1>
+            <p className="mt-2 text-sm leading-relaxed text-gray-400 sm:text-base">
               Agregá, consultá, editá y borrá películas.
             </p>
           </div>
@@ -510,36 +533,70 @@ export const AdminPeliculas = () => {
               limpiarFormulario();
               setMostrarModal(true);
             }}
-            className="rounded-lg bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+            className="w-full shrink-0 rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#070b14] sm:w-auto sm:text-base"
           >
             + Agregar película
           </button>
         </div>
 
-        <input
-          type="search"
-          placeholder="Buscar película..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          className="mb-6 w-full rounded-lg border border-gray-700 bg-[#111827] px-4 py-3 text-white outline-none focus:border-blue-500"
-        />
+        <div className="mb-6">
+          <label htmlFor="buscar-pelicula" className="sr-only">
+            Buscar película
+          </label>
+          <input
+            id="buscar-pelicula"
+            type="search"
+            placeholder="Buscar película..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-full min-w-0 rounded-lg border border-gray-700 bg-[#111827] px-4 py-3 text-base text-white outline-none transition placeholder:text-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
+          />
+        </div>
 
         {error && (
           <p
             role="alert"
-            className="mb-4 rounded-lg bg-red-950 p-3 text-red-300"
+            className="mb-4 break-words rounded-lg border border-red-800 bg-red-950 p-3 text-sm text-red-300 sm:text-base"
           >
             {error}
           </p>
         )}
 
-        {cargando && <p>Cargando películas...</p>}
-
-        {!cargando && peliculasFiltradas.length === 0 && (
-          <p className="text-gray-400">No se encontraron películas.</p>
+        {cargando && (
+          <p className="py-8 text-center text-gray-400" role="status">
+            Cargando películas...
+          </p>
         )}
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {!cargando && !error && peliculasFiltradas.length === 0 && (
+          <div className="rounded-xl border border-gray-800 bg-[#111827] px-4 py-10 text-center sm:px-6">
+            <p className="text-base font-medium text-gray-300">
+              {busqueda.trim()
+                ? "No se encontraron películas con ese nombre."
+                : "Todavía no hay películas para mostrar."}
+            </p>
+            {busqueda.trim() && (
+              <button
+                type="button"
+                onClick={() => setBusqueda("")}
+                className="mt-3 rounded-lg px-3 py-2 text-sm text-blue-300 underline underline-offset-4 hover:text-blue-200"
+              >
+                Limpiar búsqueda
+              </button>
+            )}
+          </div>
+        )}
+
+        {!cargando && peliculasFiltradas.length > 0 && (
+          <p className="mb-4 text-sm text-gray-400" aria-live="polite">
+            {peliculasFiltradas.length}{" "}
+            {peliculasFiltradas.length === 1
+              ? "película encontrada"
+              : "películas encontradas"}
+          </p>
+        )}
+
+        <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 xl:gap-6">
           {peliculasFiltradas.map((pelicula) => (
             <CardAdmin
               key={pelicula.id}
@@ -556,18 +613,37 @@ export const AdminPeliculas = () => {
           ))}
         </div>
 
-        <div className="mt-8">
-          <Link to="/admin" className="text-blue-400 hover:underline">
+        <div className="mt-8 border-t border-gray-800 pt-5">
+          <Link
+            to="/admin"
+            className="inline-flex min-h-11 items-center rounded-lg py-2 pr-3 text-sm text-blue-300 transition hover:text-blue-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:text-base"
+          >
             ← Volver al administrador
           </Link>
         </div>
       </div>
 
       {mostrarModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 p-4">
-          <div className="my-auto max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-gray-700 bg-[#111827] p-6">
-            <div className="mb-6 flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-bold">
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto overscroll-contain bg-black/80 p-3 sm:items-center sm:p-5"
+          onMouseDown={(evento) => {
+            if (evento.target === evento.currentTarget) {
+              limpiarFormulario();
+              setMostrarModal(false);
+            }
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-modal-pelicula"
+            className="my-auto flex max-h-[calc(100dvh-1.5rem)] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-gray-700 bg-[#111827] shadow-2xl sm:max-h-[90dvh]"
+          >
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-gray-800 px-4 py-4 sm:px-6">
+              <h2
+                id="titulo-modal-pelicula"
+                className="min-w-0 text-lg font-bold sm:text-2xl"
+              >
                 {peliculaEditando ? "Editar película" : "Agregar película"}
               </h2>
 
@@ -577,28 +653,34 @@ export const AdminPeliculas = () => {
                   limpiarFormulario();
                   setMostrarModal(false);
                 }}
-                className="text-2xl text-gray-400 hover:text-white"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-2xl text-gray-400 transition hover:bg-gray-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
                 aria-label="Cerrar ventana"
               >
                 &times;
               </button>
             </div>
 
-            <form onSubmit={guardarPelicula} noValidate className="space-y-4">
+            <form
+              onSubmit={guardarPelicula}
+              noValidate
+              className="min-h-0 space-y-5 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6"
+            >
               {errorFormulario && (
                 <p
                   role="alert"
-                  className="rounded-lg bg-red-950 p-3 text-sm text-red-300"
+                  className="break-words rounded-lg border border-red-800 bg-red-950 p-3 text-sm leading-relaxed text-red-300"
                 >
                   {errorFormulario}
                 </p>
               )}
 
               <div>
-                <label htmlFor="titulo-pelicula" className="mb-2 block">
+                <label
+                  htmlFor="titulo-pelicula"
+                  className="mb-2 block text-sm font-medium sm:text-base"
+                >
                   Título <span className="text-red-400">*</span>
                 </label>
-
                 <input
                   id="titulo-pelicula"
                   type="text"
@@ -607,18 +689,19 @@ export const AdminPeliculas = () => {
                     setTitulo(e.target.value);
                     setErrorFormulario("");
                   }}
-                  className="w-full rounded-lg border border-gray-700 bg-[#070b14] px-3 py-2 outline-none focus:border-blue-500"
+                  className="w-full min-w-0 rounded-lg border border-gray-700 bg-[#070b14] px-3 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
                   placeholder="Nombre de la película"
                 />
-
                 {avisoPendiente(tituloValido, "Falta agregar el título.")}
               </div>
 
               <div>
-                <label htmlFor="descripcion-pelicula" className="mb-2 block">
+                <label
+                  htmlFor="descripcion-pelicula"
+                  className="mb-2 block text-sm font-medium sm:text-base"
+                >
                   Sinopsis <span className="text-red-400">*</span>
                 </label>
-
                 <textarea
                   id="descripcion-pelicula"
                   value={descripcion}
@@ -627,10 +710,9 @@ export const AdminPeliculas = () => {
                     setErrorFormulario("");
                   }}
                   rows={4}
-                  className="w-full resize-y rounded-lg border border-gray-700 bg-[#070b14] px-3 py-2 outline-none focus:border-blue-500"
+                  className="w-full min-w-0 resize-y rounded-lg border border-gray-700 bg-[#070b14] px-3 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
                   placeholder="¿De qué trata la película?"
                 />
-
                 {avisoPendiente(
                   descripcionValida,
                   "Falta agregar la sinopsis.",
@@ -638,13 +720,16 @@ export const AdminPeliculas = () => {
               </div>
 
               <div>
-                <label htmlFor="anio-pelicula" className="mb-2 block">
+                <label
+                  htmlFor="anio-pelicula"
+                  className="mb-2 block text-sm font-medium sm:text-base"
+                >
                   Año <span className="text-red-400">*</span>
                 </label>
-
                 <input
                   id="anio-pelicula"
                   type="number"
+                  inputMode="numeric"
                   value={anio}
                   onChange={(e) => {
                     setAnio(e.target.value);
@@ -652,21 +737,19 @@ export const AdminPeliculas = () => {
                   }}
                   min="1888"
                   max="2100"
-                  className="w-full rounded-lg border border-gray-700 bg-[#070b14] px-3 py-2 outline-none focus:border-blue-500"
+                  className="w-full min-w-0 rounded-lg border border-gray-700 bg-[#070b14] px-3 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
                   placeholder="Ej. 2003"
                 />
-
                 {avisoPendiente(
                   anioValido,
-                  "Falta agregar un año válido entre 1888 y 2100.",
+                  "Ingresá un año válido entre 1888 y 2100.",
                 )}
               </div>
 
-              <div>
-                <p className="mb-2 font-medium">
+              <fieldset>
+                <legend className="mb-2 text-sm font-medium sm:text-base">
                   Calificación <span className="text-red-400">*</span>
-                </p>
-
+                </legend>
                 <div className="flex flex-wrap items-center gap-1">
                   {[1, 2, 3, 4, 5].map((estrella) => (
                     <button
@@ -680,7 +763,7 @@ export const AdminPeliculas = () => {
                         estrella === 1 ? "estrella" : "estrellas"
                       }`}
                       aria-pressed={calificacion === estrella}
-                      className={`text-3xl transition hover:scale-110 ${
+                      className={`flex h-11 w-10 items-center justify-center rounded-md text-3xl transition hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
                         estrella <= calificacion
                           ? "text-yellow-400"
                           : "text-gray-600"
@@ -695,28 +778,26 @@ export const AdminPeliculas = () => {
                       <span className="ml-2 text-sm text-gray-400">
                         {calificacion} de 5
                       </span>
-
                       <button
                         type="button"
                         onClick={() => setCalificacion(0)}
-                        className="ml-2 text-xs text-blue-300 hover:underline"
+                        className="ml-2 rounded px-2 py-2 text-xs text-blue-300 hover:underline"
                       >
                         Quitar
                       </button>
                     </>
                   )}
                 </div>
-
                 {avisoPendiente(
                   calificacionValida,
-                  "Falta completar la calificación: seleccioná al menos una estrella.",
+                  "Seleccioná al menos una estrella.",
                 )}
-              </div>
+              </fieldset>
 
-              <div>
-                <p className="mb-2 font-medium">
+              <fieldset>
+                <legend className="mb-3 text-sm font-medium sm:text-base">
                   Géneros <span className="text-red-400">*</span>
-                </p>
+                </legend>
 
                 {generosDisponibles.length > 0 && (
                   <div className="flex flex-wrap gap-2">
@@ -732,7 +813,7 @@ export const AdminPeliculas = () => {
                           type="button"
                           onClick={() => alternarGenero(genero)}
                           aria-pressed={seleccionado}
-                          className={`rounded-full border px-3 py-2 text-sm font-medium transition ${
+                          className={`max-w-full rounded-full border px-3 py-2 text-left text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${
                             seleccionado
                               ? "border-blue-400 bg-blue-600 text-white"
                               : "border-gray-600 bg-[#070b14] text-gray-300 hover:border-blue-500"
@@ -746,8 +827,12 @@ export const AdminPeliculas = () => {
                   </div>
                 )}
 
-                <div className="mt-3 flex gap-2">
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <label htmlFor="nuevo-genero" className="sr-only">
+                    Nombre del nuevo género
+                  </label>
                   <input
+                    id="nuevo-genero"
                     value={nuevoGenero}
                     onChange={(e) => setNuevoGenero(e.target.value)}
                     onKeyDown={(e) => {
@@ -756,56 +841,60 @@ export const AdminPeliculas = () => {
                         agregarGeneroPersonalizado();
                       }
                     }}
-                    className="min-w-0 flex-1 rounded-lg border border-gray-700 bg-[#070b14] px-3 py-2 outline-none focus:border-blue-500"
+                    className="w-full min-w-0 flex-1 rounded-lg border border-gray-700 bg-[#070b14] px-3 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
                     placeholder="Agregar otro género"
-                    aria-label="Nombre del nuevo género"
                   />
-
                   <button
                     type="button"
                     onClick={agregarGeneroPersonalizado}
-                    className="rounded-lg bg-gray-700 px-3 py-2 font-semibold hover:bg-gray-600"
+                    className="w-full shrink-0 rounded-lg bg-gray-700 px-4 py-3 text-sm font-semibold transition hover:bg-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:w-auto"
                   >
                     Agregar
                   </button>
                 </div>
 
-                <p className="mt-3 text-sm text-gray-400">
+                <p className="mt-3 break-words text-sm leading-relaxed text-gray-400">
                   Seleccionados:{" "}
                   {generosValidos ? generos.join(" · ") : "Ninguno"}
                 </p>
-
                 {avisoPendiente(
                   generosValidos,
-                  "Falta agregar o seleccionar al menos un género.",
+                  "Agregá o seleccioná al menos un género.",
                 )}
-              </div>
+              </fieldset>
 
               <div>
-                <label className="mb-2 block" htmlFor="archivo-poster">
+                <label
+                  className="mb-2 block text-sm font-medium sm:text-base"
+                  htmlFor="archivo-poster"
+                >
                   Imagen del póster (opcional)
                 </label>
 
-                <label className="mb-3 flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-gray-600 px-4 py-4 text-gray-300 hover:border-blue-500 hover:text-white">
-                  <span>📁 Seleccionar imagen de la computadora</span>
-
+                <label
+                  htmlFor="archivo-poster"
+                  className="flex min-h-14 cursor-pointer items-center justify-center rounded-lg border border-dashed border-gray-600 px-3 py-4 text-center text-sm leading-relaxed text-gray-300 transition hover:border-blue-500 hover:text-white"
+                >
+                  📁 Seleccionar imagen de la computadora
                   <input
                     id="archivo-poster"
                     type="file"
                     accept="image/*"
                     onChange={seleccionarImagen}
-                    className="hidden"
+                    className="sr-only"
                   />
                 </label>
 
-                <p className="mb-2 text-sm text-gray-400">
+                <p className="mb-4 mt-2 text-xs leading-relaxed text-gray-400 sm:text-sm">
                   Máximo 1 MB. Formatos de imagen habituales.
                 </p>
 
-                <label htmlFor="url-poster" className="mb-2 block">
+                <label
+                  htmlFor="url-poster"
+                  className="mb-2 block text-sm font-medium"
+                >
                   O pegá un enlace a la imagen
                 </label>
-
                 <input
                   id="url-poster"
                   type="url"
@@ -821,29 +910,27 @@ export const AdminPeliculas = () => {
 
                     if (inputImagen) inputImagen.value = "";
                   }}
-                  className="w-full rounded-lg border border-gray-700 bg-[#070b14] px-3 py-2 outline-none focus:border-blue-500"
+                  className="w-full min-w-0 rounded-lg border border-gray-700 bg-[#070b14] px-3 py-3 text-base outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
                   placeholder="https://..."
                 />
 
                 {(imagenArchivo || poster) && (
-                  <div className="mt-3">
-                    <p className="mb-2 text-sm text-gray-400">Vista previa</p>
-
+                  <div className="mt-4 rounded-lg border border-gray-800 p-3">
+                    <p className="mb-3 text-sm text-gray-400">Vista previa</p>
                     <img
                       src={imagenArchivo || poster}
                       alt="Vista previa del póster"
-                      className="mx-auto max-h-56 rounded-lg object-contain"
+                      className="mx-auto max-h-56 max-w-full rounded-lg object-contain"
                       onError={() => {
                         setErrorFormulario(
                           "No se pudo cargar la imagen. Revisá el archivo o la URL.",
                         );
                       }}
                     />
-
                     <button
                       type="button"
                       onClick={quitarImagen}
-                      className="mt-3 w-full rounded-lg bg-red-600 px-4 py-2 font-semibold hover:bg-red-700"
+                      className="mt-3 w-full rounded-lg bg-red-600 px-4 py-3 text-sm font-semibold transition hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                     >
                       Quitar imagen
                     </button>
@@ -851,27 +938,26 @@ export const AdminPeliculas = () => {
                 )}
               </div>
 
-              <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row">
+              <div className="flex flex-col-reverse gap-3 border-t border-gray-800 pt-4 sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={() => {
                     limpiarFormulario();
                     setMostrarModal(false);
                   }}
-                  className="flex-1 rounded-lg bg-gray-700 px-4 py-3 font-semibold hover:bg-gray-600"
+                  className="w-full rounded-lg bg-gray-700 px-4 py-3 font-semibold transition hover:bg-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 sm:w-auto sm:min-w-32"
                 >
                   Cancelar
                 </button>
-
                 <button
                   type="submit"
-                  className="flex-1 rounded-lg bg-blue-600 px-4 py-3 font-semibold hover:bg-blue-700"
+                  className="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:w-auto sm:min-w-40"
                 >
                   {peliculaEditando ? "Guardar cambios" : "Guardar película"}
                 </button>
               </div>
             </form>
-          </div>
+          </section>
         </div>
       )}
     </main>
